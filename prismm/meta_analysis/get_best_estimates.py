@@ -4,7 +4,7 @@ import logging
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 
-from clonal_trees.meta_analysis.simulation_result import SimulationResult
+from prismm.meta_analysis.simulation_result import SimulationResult
 
 
 @dataclass

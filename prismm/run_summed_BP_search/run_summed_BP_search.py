@@ -1,9 +1,9 @@
 import logging
-from parse_arguments import parse_arguments
-from IO_operations import load_results_from_file, save_likelihoods
-from print_things import pretty_print_data, print_dataframes, print_path_likelihoods
-from multiplicities_to_likelihoods import CN_multiplicities_to_likelihoods
-from compute_likelihoods import compute_likelihoods
+from prismm.run_summed_BP_search.parse_arguments import parse_arguments
+from prismm.run_summed_BP_search.IO_operations import load_results_from_file, save_likelihoods
+from prismm.run_summed_BP_search.print_things import pretty_print_data, print_dataframes, print_path_likelihoods
+from prismm.run_summed_BP_search.multiplicities_to_likelihoods import CN_multiplicities_to_likelihoods
+from prismm.run_summed_BP_search.compute_likelihoods import compute_likelihoods
 
 
 def generate_default_paths(max_default_path_length):

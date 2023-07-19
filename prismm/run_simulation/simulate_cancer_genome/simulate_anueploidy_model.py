@@ -2,7 +2,7 @@ from typing import Dict, List, Tuple
 import copy
 import numpy as np
 
-from clonal_trees.run_simulation.simulate_cancer_genome.create_new_chromosome import create_new_chromosome
+from prismm.run_simulation.simulate_cancer_genome.create_new_chromosome import create_new_chromosome
 
 def simulate_chromosome_changes(
     chromosomes: List[Dict],

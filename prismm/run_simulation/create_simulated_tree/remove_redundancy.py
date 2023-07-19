@@ -1,6 +1,6 @@
 from typing import Optional, Dict
 
-from clonal_trees.run_simulation.create_simulated_tree.check_trees import check_and_remove_redundant_node_in_tree_structure
+from prismm.run_simulation.create_simulated_tree.check_trees import check_and_remove_redundant_node_in_tree_structure
 
 def remove_SNVs_from_tree_structure(tree: Optional[Dict]) -> Optional[Dict]:
     """

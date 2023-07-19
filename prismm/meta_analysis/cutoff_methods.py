@@ -2,8 +2,7 @@ import logging
 import numpy as np
 from sklearn.metrics import accuracy_score
 from statistics_operations import print_summary_statistics
-from typing import Dict, List, Tuple, Optional
-from collections import Counter
+from typing import Dict, List, Tuple
 
 # Setting up logging
 logging.basicConfig(level=logging.INFO)

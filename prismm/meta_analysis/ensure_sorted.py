@@ -1,5 +1,4 @@
-import random
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Any
 
 def is_sorted_by_worst_aic(solutions: List[Dict[str, Any]]) -> bool:
     """

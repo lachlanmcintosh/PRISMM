@@ -3,8 +3,8 @@ from scipy.stats import poisson
 from typing import Optional, List, Tuple
 from dataclasses import dataclass
 
-from clonal_trees.run_simulation.simulation_priors.random_number_generator import generate_dirichlet_probability, random_integer_log_scale
-from clonal_trees.run_simulation.simulation_priors.print import print_simulation_parameters
+from prismm.run_simulation.simulation_priors.random_number_generator import generate_dirichlet_probability, random_integer_log_scale
+from prismm.run_simulation.simulation_priors.print import print_simulation_parameters
 
 
 # Constants

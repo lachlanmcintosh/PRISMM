@@ -1,11 +1,11 @@
 import random
 from typing import Tuple, Union
 
-from clonal_trees.run_simulation.simulation_priors.random_number_generator import (
+from prismm.run_simulation.simulation_priors.random_number_generator import (
     generate_poisson,
     generate_dirichlet_probability,
 )
-from clonal_trees.run_simulation.simulation_priors.print import print_simulation_parameters
+from prismm.run_simulation.simulation_priors.print import print_simulation_parameters
 
 
 def sample_pre_mid_post(gd_probabilities: Tuple[float, float, float], max_epochs: int, lam: float) -> Tuple[int, int, int]:

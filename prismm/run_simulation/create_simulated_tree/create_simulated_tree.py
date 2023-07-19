@@ -1,13 +1,13 @@
 import logging
 from typing import Dict
 
-from clonal_trees.run_simulation.create_simulated_tree.insert_node import insert_node_into_tree_structure
-from clonal_trees.run_simulation.create_simulated_tree.add_metadata import (
+from prismm.run_simulation.create_simulated_tree.insert_node import insert_node_into_tree_structure
+from prismm.run_simulation.create_simulated_tree.add_metadata import (
     add_copynumber_to_tree_structure, 
     add_SNV_multiplicity_to_tree_structure, 
     assign_epoch_killed_to_tree_structure
 )
-from clonal_trees.run_simulation.create_simulated_tree.remove_redundancy import (
+from prismm.run_simulation.create_simulated_tree.remove_redundancy import (
     remove_SNVs_from_tree_structure, 
     remove_dead_leaf_nodes_from_tree_structure, 
     remove_redundant_parents_from_tree_structure

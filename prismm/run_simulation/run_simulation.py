@@ -4,16 +4,16 @@ import logging
 from typing import Dict, List, Any, Tuple
 from pathlib import Path
 
-from clonal_trees.run_simulation.simulate_cancer_genome.simulate_cancer_genome import simulate_cancer_genome
-from clonal_trees.run_simulation.simulated_tree_analysis.count_multiplicities import count_copy_numbers, count_copy_number_multiplicities
-from clonal_trees.run_simulation.create_simulated_tree.create_simulated_tree import create_truth_trees_from_simulation
-from clonal_trees.run_simulation.create_simulated_tree.dict_tree_to_CN_tree import convert_truth_trees_to_CN_trees
-from clonal_trees.run_simulation.simulated_tree_analysis.print import print_simulated_genome_data
-from clonal_trees.run_simulation.simulation_priors.simulate_prior import simulate_parameters_not_given_as_arguments
-from clonal_trees.run_simulation.parse_arguments import parse_arguments
+from prismm.run_simulation.simulate_cancer_genome.simulate_cancer_genome import simulate_cancer_genome
+from prismm.run_simulation.simulated_tree_analysis.count_multiplicities import count_copy_numbers, count_copy_number_multiplicities
+from prismm.run_simulation.create_simulated_tree.create_simulated_tree import create_truth_trees_from_simulation
+from prismm.run_simulation.create_simulated_tree.dict_tree_to_CN_tree import convert_truth_trees_to_CN_trees
+from prismm.run_simulation.simulated_tree_analysis.print import print_simulated_genome_data
+from prismm.run_simulation.simulation_priors.simulate_prior import simulate_parameters_not_given_as_arguments
+from prismm.run_simulation.parse_arguments import parse_arguments
 
 # Define the simulation file folder as a Path object for easier file handling
-SIMULATIONS_FILE_FOLDER = Path("clonal_trees/SIMULATIONS/")
+SIMULATIONS_FILE_FOLDER = Path("prismm/SIMULATIONS/")
 
 def simulate_and_analyze_genome(args) -> Tuple[Dict, List, List, Dict, Dict]:
     """

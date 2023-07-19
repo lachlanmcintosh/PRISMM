@@ -1,5 +1,5 @@
 import argparse
-import clonal_trees.script_args as script_args
+import prismm.script_args as script_args
 
 def parse_arguments():
     parser = argparse.ArgumentParser(

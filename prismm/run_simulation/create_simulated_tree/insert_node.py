@@ -1,8 +1,8 @@
 import copy
 from typing import Dict, List, Tuple, Optional
 
-from clonal_trees.run_simulation.create_simulated_tree.dict_tree_to_CN_tree import convert_truth_tree_to_CN_tree, get_child_and_complement_trees_from_truth_tree
-from clonal_trees.utils.make_left_heavy import make_left_heavy
+from prismm.run_simulation.create_simulated_tree.dict_tree_to_CN_tree import convert_truth_tree_to_CN_tree, get_child_and_complement_trees_from_truth_tree
+from prismm.utils.make_left_heavy import make_left_heavy
 
 
 def insert_node_into_leaf(tree: Dict, node: Dict) -> None:

@@ -1,6 +1,6 @@
 import argparse
 from typing import Any
-from clonal_trees.script_args import add_base_args, add_simulation_args
+from prismm.script_args import add_base_args, add_simulation_args
 
 def parse_arguments() -> Any:
     """
@@ -12,7 +12,7 @@ def parse_arguments() -> Any:
         description="Simulate single chromosome data with Poisson timestamps."
     )
 
-    # add the relevant arguments from clonal_trees/script_args.py
+    # add the relevant arguments from prismm/script_args.py
     add_base_args(parser)
     add_simulation_args(parser)
 

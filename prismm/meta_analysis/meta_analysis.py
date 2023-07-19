@@ -2,16 +2,14 @@ import pickle
 import argparse
 import logging
 import numpy as np
-import json
-import glob
 
-from clonal_trees.meta_analysis.get_best_estimates import SimulationProcessor
-from clonal_trees.meta_analysis.load_simulation_results import get_filenames_sorted_by_time, process_files
-from clonal_trees.meta_analysis.grid_operations import create_3x3_grid, get_correct_proportion
-from clonal_trees.meta_analysis.string_distances import calculate_edit_distances, print_different_ev_strings
-from clonal_trees.meta_analysis.statistics_operations import print_summary_statistics, summarize_p_similarity, summarize_plambda_similarity, aggregate_similarity_scores
-from clonal_trees.meta_analysis.cutoff_methods import find_best_cutoff, find_best_accuracy_box
-from clonal_trees.meta_analysis.cutoff_methods import calculate_accuracy_for_given_cutoffs
+from prismm.meta_analysis.get_best_estimates import SimulationProcessor
+from prismm.meta_analysis.load_simulation_results import get_filenames_sorted_by_time, process_files
+from prismm.meta_analysis.grid_operations import create_3x3_grid, get_correct_proportion
+from prismm.meta_analysis.string_distances import calculate_edit_distances, print_different_ev_strings
+from prismm.meta_analysis.statistics_operations import print_summary_statistics, summarize_p_similarity, summarize_plambda_similarity, aggregate_similarity_scores
+from prismm.meta_analysis.cutoff_methods import find_best_cutoff, find_best_accuracy_box
+from prismm.meta_analysis.cutoff_methods import calculate_accuracy_for_given_cutoffs
 
 
 def main(simulation_filename: str, cutoffs_best_estimate: tuple, cutoffs_arbitrary_estimate: tuple) -> None:

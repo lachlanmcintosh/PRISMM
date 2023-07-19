@@ -1,6 +1,6 @@
 from typing import Dict, List, Tuple
 
-from clonal_trees.utils.make_left_heavy import make_left_heavy
+from prismm.utils.make_left_heavy import make_left_heavy
 
 def get_child_and_complement_trees_from_truth_tree(truth_tree: Dict) -> Tuple:
     """

@@ -1,13 +1,13 @@
 from typing import List
 
-from clonal_trees.run_simulation.simulate_cancer_genome.initialize_simulated_chromosomes import initialize_simulated_chromosomes
-from clonal_trees.run_simulation.simulate_cancer_genome.simulate_SNVs import simulate_snvs
-from clonal_trees.run_simulation.simulate_cancer_genome.simulation_checks import check_all_chrs_are_unique, check_simulated_chromosomes
-from clonal_trees.run_simulation.simulate_cancer_genome.simulate_GD import simulate_gd
-from clonal_trees.run_simulation.simulate_cancer_genome.simulate_anueploidy_agnostic import simulate_anueploidy_agnostic
-from clonal_trees.run_simulation.simulate_cancer_genome.simulate_anueploidy_model import simulate_anueploidy
-from clonal_trees.utils.LENGTHS import LENGTHS
-from clonal_trees.utils.get_ev_string import get_ev_string
+from prismm.run_simulation.simulate_cancer_genome.initialize_simulated_chromosomes import initialize_simulated_chromosomes
+from prismm.run_simulation.simulate_cancer_genome.simulate_SNVs import simulate_snvs
+from prismm.run_simulation.simulate_cancer_genome.simulation_checks import check_all_chrs_are_unique, check_simulated_chromosomes
+from prismm.run_simulation.simulate_cancer_genome.simulate_GD import simulate_gd
+from prismm.run_simulation.simulate_cancer_genome.simulate_anueploidy_agnostic import simulate_anueploidy_agnostic
+from prismm.run_simulation.simulate_cancer_genome.simulate_anueploidy_model import simulate_anueploidy
+from prismm.utils.LENGTHS import LENGTHS
+from prismm.utils.get_ev_string import get_ev_string
 
 def simulate_cancer_genome(p_up: float, p_down: float, pre: int, mid: int, post: int, rate: float, agnostic: bool=False) -> List:
     """

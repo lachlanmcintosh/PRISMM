@@ -1,7 +1,7 @@
 from typing import List, Dict, Tuple
 import random
 
-from clonal_trees.run_simulation.simulate_cancer_genome.create_new_chromosome import create_new_chromosome
+from prismm.run_simulation.simulate_cancer_genome.create_new_chromosome import create_new_chromosome
 
 def simulate_agnostic_chromosome_loss(chromosomes: List[Dict], chrom_count: int) -> int:
     """
