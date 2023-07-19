@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import pytest
+from typing import Dict, List, Tuple, Union, Type
 
 
 def sum_tree_distance(tree1, tree2, diff_struct_is_inf=False):
