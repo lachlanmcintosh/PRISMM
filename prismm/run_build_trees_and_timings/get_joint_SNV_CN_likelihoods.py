@@ -3,7 +3,11 @@ import logging
 import numpy as np
 from scipy import optimize as opt
 import sys
-
+from prismm.utils.FILES import PRECOMPUTED_FILE_FOLDER
+import pickle as pkl
+from prismm.run_build_trees_and_timings.get_BP_likelihoods import timing_struct_to_BP_likelihood_per_chrom
+from prismm.run_build_trees_and_timings.get_SNV_likelihoods import find_best_SNV_likelihood
+from prismm.utils.LENGTHS import LENGTHS
 
 def get_best_struct(best_structure_indicies,best_structures):
     best_structure = {}
@@ -61,6 +65,22 @@ def are_all_chromosomes_viable_by_BP_likelihood(all_structures, tree_flexibility
 
     return return_val
 
+
+def add_BP_likelihoods(all_structures, p_up, p_down):
+
+    file = PRECOMPUTED_FILE_FOLDER + "/subbed_mat_u"+str(int(p_up))+"_d"+str(int(p_down))+"_p8_v4.precomputed_paths.pickle"
+
+    data = pkl.load(open(file,'rb'))
+
+
+    for chrom in all_structures.keys():
+        timing_struct_to_BP_likelihood_per_chrom(
+            data=data,
+            structures=all_structures[chrom],
+            p_up=p_up,
+            p_down=p_down
+            )
+    return all_structures
 
 
 def find_BP_and_SNV_loglik(plambda_start, p_up_start, p_down_start, p_window, plambda_window, all_structures, observed_SNV_multiplicities, total_SNVs, tree_flexibility):

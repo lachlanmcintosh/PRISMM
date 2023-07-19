@@ -2,7 +2,7 @@ import json
 import sys
 import pandas as pd
 from typing import Dict
-
+from prismm.run_analyse_trees.tree_things import convert_dict_tree_to_list
 
 def pretty_print_tree(tree):
     """

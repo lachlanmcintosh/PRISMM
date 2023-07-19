@@ -46,7 +46,7 @@ def pre_mid_post_to_path_length(pre, mid, post):
 
     # double check the total:
     anueploidy_counts = pre*(pre>0) + mid*(mid>0) + post*(post>0)
-    gd_counts = (pre>=0) + (mid>=0)
+    gd_counts = (mid>=0) + (post>=0)
     expected_total = anueploidy_counts + gd_counts
     
     assert total == expected_total, \

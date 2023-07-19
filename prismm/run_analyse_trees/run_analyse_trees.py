@@ -4,6 +4,12 @@ from prismm.run_simulation.parse_arguments import parse_arguments
 from prismm.utils.set_logging import set_logging
 from prismm.script_args import print_args
 from prismm.run_analyse_trees.parse_arguments import parse_arguments
+from prismm.run_analyse_trees.IO_operations import load_simulation_data, save_simulation_data
+from prismm.run_analyse_trees.process_results import sort_simulation_results_by_likelihood, get_all_trees_ready_for_comparison
+from prismm.run_analyse_trees.tree_things import filter_tree
+from prismm.run_analyse_trees.printing_things import print_solution_results, print_similarity_results
+from prismm.run_analyse_trees.distance_functions import ZeroDistance, AbsoluteDifference, SquaredDistance, InfiniteDistance
+
 
 def main(args) -> None:
     """

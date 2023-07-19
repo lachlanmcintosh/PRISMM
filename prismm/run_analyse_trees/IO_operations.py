@@ -1,5 +1,6 @@
 import pickle
 import os
+from prismm.utils.FILES import SIMULATIONS_FILE_FOLDER
 
 
 def load_simulation_data(test_case, simulation_filename):

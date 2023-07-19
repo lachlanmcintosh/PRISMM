@@ -1,5 +1,247 @@
 import logging
 import numpy as np
+from typing import Dict
+import re
+import math
+
+def find_non_parent_children(parents):
+    """
+    Find children that are not parents in the given parent-child relationship dictionary.
+
+    Args:
+        parents (dict): A dictionary with keys as child indices and values as their parent indices.
+
+    Returns:
+        set: A set of child indices that are not parents.
+    """
+    all_children = set(parents.keys())
+    all_parents = set(parents.values())
+    non_parent_children = all_children.difference(all_parents)
+    return non_parent_children
+
+def test_find_non_parent_children():
+    parents = {1: 0, 2: 0, 4: 3, 5: 3}
+    expected_non_parent_children = {1, 2, 4, 5}
+    non_parent_children = find_non_parent_children(parents)
+    assert non_parent_children == expected_non_parent_children, f"Expected {expected_non_parent_children}, but got {non_parent_children}"
+
+# Run the test function
+test_find_non_parent_children()
+
+
+def calculate_child_parent_diff(epochs_created: np.ndarray, parents: Dict, max_epoch: int):
+    """
+    Calculate the difference between child and parent epochs.
+
+    Args:
+        epochs_created (np.ndarray): A 2D numpy array containing the epochs when elements were created.
+        parents (Dict): A dictionary with keys as child indices and values as their parent indices.
+        epochs (int): The total number of epochs.
+
+    Returns:
+        np.ndarray: A 2D numpy array containing the difference between child and parent epochs.
+    """
+    assert isinstance(epochs_created, np.ndarray) and epochs_created.ndim == 2, f"epochs_created must be a 2D numpy array, but was {type(epochs_created)} with dimensions {epochs_created.ndim}. epochs_created: {str(epochs_created)}"
+
+    assert isinstance(parents, dict), f"parents must be a dictionary, but was {type(parents)}"
+    
+    branch_lengths = np.copy(epochs_created)
+    for child in parents: 
+        branch_lengths[:, parents[child]] = epochs_created[:, child] - epochs_created[:, parents[child]]
+
+    non_parent_children = find_non_parent_children(parents)
+    for column in non_parent_children:
+        branch_lengths[:, column] = max_epoch - epochs_created[:, column]
+        
+    return branch_lengths
+
+def test_calculate_child_parent_diff():
+    # First test case
+    epochs_created = np.array([[-1, 0, 1, 1, 1, 1, 0],
+                               [-1, 0, 1, 2, 2, 1, 0],
+                               [-1, 0, 2, 2, 2, 2, 0],
+                               [-1, 1, 2, 2, 2, 2, 1]], dtype=object)
+    parents = {3: 2, 4: 2, 2: 1, 5: 1, 1: 0, 6: 0}
+    max_epoch = 2
+    result = calculate_child_parent_diff(epochs_created, parents, max_epoch)
+    expected = np.array([[1, 1, 0, 1, 1, 1, 2],
+                         [1, 1, 1, 0, 0, 1, 2],
+                         [1, 2, 0, 0, 0, 0, 2],
+                         [2, 1, 0, 0, 0, 0, 1]], dtype=object)
+    assert np.array_equal(result, expected), f"calculate_child_parent_diff returned incorrect values.\nExpected: {expected}\nGot: {result}"
+
+    # Second test case
+    epochs_created = np.array([[-1, 0, 1, 1, 1, 1, 1, 1, 0],
+                               [-1, 0, 1, 1, 1, 1, 2, 2, 0],
+                               [-1, 0, 1, 2, 2, 1, 1, 1, 0],
+                               [-1, 0, 1, 2, 2, 1, 2, 2, 0],
+                               [-1, 0, 2, 2, 2, 2, 2, 2, 0],
+                               [-1, 1, 2, 2, 2, 2, 2, 2, 1]], dtype=object)
+    parents = {3: 2, 4: 2, 2: 1, 6: 5, 7: 5, 5: 1, 1: 0, 8: 0}
+    max_epoch = 2
+    result = calculate_child_parent_diff(epochs_created, parents, max_epoch)
+    expected = np.array([[1, 1, 0, 1, 1, 0, 1, 1, 2],
+                         [1, 1, 0, 1, 1, 1, 0, 0, 2],
+                         [1, 1, 1, 0, 0, 0, 1, 1, 2],
+                         [1, 1, 1, 0, 0, 1, 0, 0, 2],
+                         [1, 2, 0, 0, 0, 0, 0, 0, 2],
+                         [2, 1, 0, 0, 0, 0, 0, 0, 1]], dtype=object)
+    assert np.array_equal(result, expected), f"calculate_child_parent_diff returned incorrect values.\nExpected: {expected}\nGot: {result}"
+
+
+test_calculate_child_parent_diff()
+
+def extract_copy_numbers(tree):
+    CNs = [x for x in re.split("\(|\)|,|'", str(tree)) if x.isdigit()]
+    CNs = [int(x) for x in CNs]
+    return CNs
+
+
+def test_extract_copy_numbers():
+    tree = "(3,(1,1))"
+    CNs = extract_copy_numbers(tree)
+    assert CNs == [3, 1, 1], "extract_copy_numbers returned incorrect CNs"
+
+
+test_extract_copy_numbers()
+
+
+def stack_same_CN_branch_lengths(unique_CNs, CNs, branch_lengths):
+    for i, CN in enumerate(unique_CNs):
+        indices = find_indices(CNs, CN)
+        new_stacked_branch_lengths = branch_lengths[:, indices].sum(axis=1)
+
+        if i == 0:
+            stacked_branch_lengths = new_stacked_branch_lengths
+        else:
+            stacked_branch_lengths = np.vstack((stacked_branch_lengths, new_stacked_branch_lengths))
+
+    return np.transpose(stacked_branch_lengths)
+
+def stack_same_CN_branch_lengths(CNs, branch_lengths):
+    """
+    Stacks branch lengths of the same copy number state.
+
+    Arguments:
+    unique_CNs -- a list of unique copy number states.
+    CNs -- a list of copy number states, matching the second dimension of branch_lengths.
+    branch_lengths -- a 2D array where the second dimension matches CNs.
+
+    Returns:
+    A 2D numpy array where branch lengths of the same copy number state have been stacked.
+    """
+    # Remove the first column
+    CNs = CNs[1:]
+    branch_lengths = branch_lengths[:, 1:]
+    unique_CNs = sorted(list(set(CNs)), reverse = True)
+
+    for i, CN in enumerate(unique_CNs):
+        indices = find_indices(CNs, CN)
+        new_stacked_branch_lengths = branch_lengths[:, indices].sum(axis=1)
+
+        if i == 0:
+            stacked_branch_lengths = new_stacked_branch_lengths
+        else:
+            stacked_branch_lengths = np.vstack((stacked_branch_lengths, new_stacked_branch_lengths))
+
+    return np.transpose(stacked_branch_lengths), unique_CNs
+
+def find_indices(list_to_check, item_to_find):
+    indices = [i for i, x in enumerate(list_to_check) if x == item_to_find]
+    return indices
+
+def test_find_indices():
+    test_list = [1, 2, 3, 2, 4, 2, 5]
+    item = 2
+    indices = find_indices(test_list, item)
+    assert indices == [1, 3, 5], "find_indices returned incorrect indices"
+
+
+def stack_same_CN_branch_lengths(CNs, branch_lengths):
+    """
+    Stacks branch lengths of the same copy number state.
+
+    Arguments:
+    CNs -- a list of copy number states, matching the second dimension of branch_lengths.
+    branch_lengths -- a 2D array where the second dimension matches CNs.
+
+    Returns:
+    A 2D numpy array where branch lengths of the same copy number state have been stacked.
+    """
+    # Remove the first column
+    CNs = CNs[1:]
+    branch_lengths = branch_lengths[:, 1:]
+    unique_CNs = sorted(list(set(CNs)), reverse=True)
+
+    stacked_branch_lengths = []  # Initialize an empty list
+
+    for CN in unique_CNs:
+        indices = find_indices(CNs, CN)
+        new_stacked_branch_lengths = branch_lengths[:, indices].sum(axis=1)
+        stacked_branch_lengths.append(new_stacked_branch_lengths)
+
+    stacked_branch_lengths = np.vstack(stacked_branch_lengths).T
+
+    return stacked_branch_lengths, unique_CNs
+
+
+
+def test_stack_same_CN_branch_lengths():
+    # First test case
+    unique_CNs = [5, 3, 2, 1]
+    CNs = [5, 3, 2, 1, 1, 1, 2, 1, 1]
+    branch_lengths = np.array([[1, 1, 0, 1, 1, 1, 0, 2, 2],
+                               [1, 1, 0, 1, 1, 1, 1, 1, 1],
+                               [1, 1, 0, 1, 1, 1, 2, 0, 0],
+                               [1, 1, 1, 0, 0, 1, 0, 2, 2],
+                               [1, 1, 1, 0, 0, 1, 1, 1, 1],
+                               [1, 1, 1, 0, 0, 1, 2, 0, 0],
+                               [1, 2, 0, 0, 0, 0, 0, 2, 2],
+                               [1, 2, 0, 0, 0, 0, 1, 1, 1],
+                               [1, 2, 0, 0, 0, 0, 2, 0, 0],
+                               [2, 1, 0, 0, 0, 0, 0, 1, 1],
+                               [2, 1, 0, 0, 0, 0, 1, 0, 0]], dtype=object)
+    result = stack_same_CN_branch_lengths(CNs, branch_lengths)
+    expected = np.array([[1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2],
+                         [1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1],
+                         [0, 1, 2, 1, 2, 3, 0, 1, 2, 0, 1],
+                         [7, 5, 3, 5, 3, 1, 4, 2, 0, 2, 0]], dtype=object).T
+    assert np.array_equal(result, expected), f"stack_same_CN_branch_lengths returned incorrect values.\nExpected: {expected}\nGot: {result}"
+
+    # Second test case
+    unique_CNs = [3, 2, 1, 0]
+    CNs = [3, 3, 2, 1, 1, 1, 0]
+    branch_lengths = np.array([[1, 1, 0, 1, 1, 1, 2],
+                               [1, 1, 1, 0, 0, 1, 2],
+                               [1, 2, 0, 0, 0, 0, 2],
+                               [2, 1, 0, 0, 0, 0, 1]], dtype=object)
+    result = stack_same_CN_branch_lengths(CNs, branch_lengths)
+   
+    expected = np.array([[2, 2, 3, 3],
+                         [0, 1, 0, 0],
+                         [3, 1, 0, 0],
+                         [2, 2, 2, 1]], dtype=object).T
+    assert np.array_equal(result, expected), f"stack_same_CN_branch_lengths returned incorrect values.\nExpected: {expected}\nGot: {result}"
+
+    # Third test case
+    unique_CNs = [4, 2, 1, 0]
+    CNs = [4, 4, 2, 1, 1, 2, 1, 1, 0]
+    branch_lengths = np.array([[1, 1, 0, 1, 1, 0, 1, 1, 2],
+                               [1, 1, 0, 1, 1, 1, 0, 0, 2],
+                               [1, 1, 1, 0, 0, 0, 1, 1, 2],
+                               [1, 1, 1, 0, 0, 1, 0, 0, 2],
+                               [1, 2, 0, 0, 0, 0, 0, 0, 2],
+                               [2, 1, 0, 0, 0, 0, 0, 0, 1]], dtype=object)
+    result = stack_same_CN_branch_lengths(CNs, branch_lengths)
+    expected = np.array([[2, 2, 2, 2, 3, 3],
+                         [0, 1, 1, 2, 0, 0],
+                         [4, 2, 2, 0, 0, 0],
+                         [2, 2, 2, 2, 2, 1]], dtype=object).T
+    assert np.array_equal(result, expected), f"stack_same_CN_branch_lengths returned incorrect values.\nExpected: {expected}\nGot: {result}"
+
+
+#test_stack_same_CN_branch_lengths()
+
 
 
 def get_branch_lengths(trees_and_timings, max_epoch):
@@ -280,20 +522,3 @@ def calculate_likelihoods_from_paths(paths, CNs, data, p_up, p_down):
 
     return likelihoods
 
-
-
-def add_BP_likelihoods(all_structures, p_up, p_down):
-
-    file = PRECOMPUTED_FILE_FOLDER + "/subbed_mat_u"+str(int(p_up))+"_d"+str(int(p_down))+"_p8_v4.precomputed_paths.pickle"
-
-    data = pkl.load(open(file,'rb'))
-
-
-    for chrom in all_structures.keys():
-        timing_struct_to_BP_likelihood_per_chrom(
-            data=data,
-            structures=all_structures[chrom],
-            p_up=p_up,
-            p_down=p_down
-            )
-    return all_structures

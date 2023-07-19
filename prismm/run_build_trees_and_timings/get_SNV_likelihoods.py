@@ -2,7 +2,7 @@ import numpy as np
 import scipy.special
 import sys
 import logging
-
+from prismm.utils.LENGTHS import LENGTHS
 
 def get_poisson_loglikelihood(counts, stacked_branch_lengths, plambda, chrom, lengths, unique_CNs):
 
