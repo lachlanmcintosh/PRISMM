@@ -1,5 +1,5 @@
 import argparse
-from clonal_trees.script_args import simulation_args, build_trees_args
+from prismm.script_args import add_base_args, add_build_trees_args
 
 
 def parse_arguments():
@@ -8,7 +8,7 @@ def parse_arguments():
     )
     
     # add the relevant arguments from clonal_trees/script_args.py 
-    script_args.add_base_args(parser)
-    script_args.add_build_trees_args(parser)
+    add_base_args(parser)
+    add_build_trees_args(parser)
 
     return parser.parse_args()

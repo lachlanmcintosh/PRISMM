@@ -1,3 +1,13 @@
+import logging
+import copy
+import numpy as np
+
+from prismm.run_build_trees_and_timings.parse_arguments import parse_arguments
+from prismm.run_build_trees_and_timings.IO_operations import load_results_from_file, save_dict_to_file
+from prismm.run_simulation.simulation_priors.random_number_generator import generate_dirichlet_probability
+from prismm.script_args import print_args
+
+
 def sum_SNV_counts(observed_SNV_multiplicities):
     d = observed_SNV_multiplicities
     total = 0
@@ -308,9 +318,10 @@ def init(args):
 
 
 
-def main():
-    args = parse_arguments()
-    print(args)
+def main(args):
+    print("building trees and timing arrays from likely paths")
+    print_args(args)
+    set_logging(args)
 
     if args.debug:
         logging.basicConfig(level = logging.DEBUG)
@@ -359,6 +370,7 @@ def main():
     save_dict_to_file(dictionary=SS, test_case=args.test_case, simulation_filename=args.simulation_filename)
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    args = parse_arguments()
+    main(args)
 

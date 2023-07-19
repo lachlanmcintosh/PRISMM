@@ -1,5 +1,6 @@
 # File: script_args.py
 import argparse
+import logging
 from prismm.run_simulation.simulation_priors.random_number_generator import random_integer_log_scale
 
 def add_base_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
@@ -135,3 +136,11 @@ def add_build_trees_args(parser : argparse.ArgumentParser) -> argparse.ArgumentP
 
 def add_analyse_trees_args(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
     return parser
+
+
+def print_args(args):
+    logging.info("Arguments:")
+    for arg in vars(args):
+        logging.info(f"{arg}: {getattr(args, arg)}")
+    print()
+

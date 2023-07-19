@@ -21,7 +21,7 @@ def generate_path_from_pre_mid_post(pre, mid, post):
 
 def test_generate_path_from_pre_mid_post():
     assert generate_path_from_pre_mid_post(0, 0, -1) == "0G0"
-    assert genergenerate_path_from_pre_mid_postate_path(1, 1, -1) == "1G1"
+    assert generate_path_from_pre_mid_post(1, 1, -1) == "1G1"
     assert generate_path_from_pre_mid_post(1, 1, 1) == "1G1G1"
     assert generate_path_from_pre_mid_post(0, 1, -1) == "0G1"
     assert generate_path_from_pre_mid_post(2, 0, -1) == "2G0"

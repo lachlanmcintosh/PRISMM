@@ -1,6 +1,6 @@
 import pandas as pd
 import logging
-from utils.path_code_to import path_code_to_path_length, path_code_num_anueploidy_epochs
+from prismm.utils.path_codes import path_code_to_path_length, path_code_num_anueploidy_epochs
 
 def filter_out_p_up_p_down_equals_zero_row(df: pd.DataFrame) -> pd.DataFrame:
     df['aneuploidy_epochs'] = df['path'].apply(path_code_num_anueploidy_epochs)

@@ -11,6 +11,8 @@ from prismm.run_simulation.create_simulated_tree.dict_tree_to_CN_tree import con
 from prismm.run_simulation.simulated_tree_analysis.print import print_simulated_genome_data
 from prismm.run_simulation.simulation_priors.simulate_prior import simulate_parameters_not_given_as_arguments
 from prismm.run_simulation.parse_arguments import parse_arguments
+from prismm.script_args import print_args
+from prismm.utils.set_logging import set_logging
 
 # Define the simulation file folder as a Path object for easier file handling
 SIMULATIONS_FILE_FOLDER = Path("prismm/SIMULATIONS/")
@@ -29,7 +31,6 @@ def simulate_and_analyze_genome(args) -> Tuple[Dict, List, List, Dict, Dict]:
         A tuple containing the simulated chromosomes, truth trees, CN trees, observed CNs, and observed CN multiplicities.
     """
     # Simulate the genome
-    print(args)
     simulated_chromosomes = simulate_cancer_genome(
         p_up=args.p_up,
         p_down=args.p_down,
@@ -50,7 +51,6 @@ def simulate_and_analyze_genome(args) -> Tuple[Dict, List, List, Dict, Dict]:
     observed_CN_multiplicities = count_copy_number_multiplicities(observed_copy_numbers=observed_CNs)
 
     return simulated_chromosomes, truth_trees, CN_trees, observed_CNs, observed_CN_multiplicities
-
 
 
 def save_results_to_file(test_case: str, simulation_filename: str, simulated_chromosomes: Dict,
@@ -93,26 +93,21 @@ def save_results_to_file(test_case: str, simulation_filename: str, simulated_chr
         }, f)
     logging.info(f"Results saved to file {file_name}")
 
-def main() -> None:
+def main(args) -> None:
     """
     Main function to run the simulation, analyze the results, and save them.
 
     The function performs the following steps:
-    1. Parse command-line arguments.
-    2. Simulate parameters that are not provided as arguments.
-    3. Simulate a genome and perform basic analysis.
-    4. Print the simulated genome data.
-    5. Save the results to a file.
+    1. Simulate parameters that are not provided as arguments.
+    2. Simulate a genome and perform basic analysis.
+    3. Print the simulated genome data.
+    4. Save the results to a file.
     """
     
-    # Get simulation parameters
-    args = parse_arguments()
-
     # Configure logging settings based on --debug argument
-    if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
+    print("generating a simulation")
+    print_args(args)
+    set_logging(args)
 
     args = simulate_parameters_not_given_as_arguments(args)
 
@@ -145,4 +140,6 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    args = parse_arguments()
+    main(args)
+

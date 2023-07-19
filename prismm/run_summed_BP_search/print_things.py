@@ -1,7 +1,7 @@
 import json
 import logging
 from utils.pretty_print import pretty_print
-from utils.generate_paths_from_pre_mid_post import generate_path_from_pre_mid_post
+from utils.path_codes import generate_path
 
 
 def print_path_likelihoods(likelihoods, searchable_likelihoods, marginal_likelihoods, top_likelihoods, default_paths, data):

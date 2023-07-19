@@ -75,3 +75,24 @@ def test_path_code_to_pre_mid_post():
 
 
 test_path_code_to_pre_mid_post()
+
+
+def generate_path(pre, mid, post):
+    path = ""
+
+    if pre == -1 and (mid != -1 or post != -1):
+        raise ValueError("Invalid input: pre is -1 while mid or post is not -1")
+
+    if mid == -1 and post != -1:
+        raise ValueError("Invalid input: mid is -1 while post is not -1")
+
+    if pre >= 0:
+        path += str(pre)
+
+    if mid >= 0:
+        path += "G" + str(mid)
+
+    if post >= 0:
+        path += "G" + str(post)
+
+    return path
