@@ -1,6 +1,6 @@
 # File: script_args.py
 import argparse
-from clonal_trees.run_simulation.simulation_priors.random_number_generator import random_integer_log_scale
+from prismm.run_simulation.simulation_priors.random_number_generator import random_integer_log_scale
 
 def add_base_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument(

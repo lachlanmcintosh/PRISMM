@@ -51,8 +51,6 @@ def simulate_and_analyze_genome(args) -> Tuple[Dict, List, List, Dict, Dict]:
 
     return simulated_chromosomes, truth_trees, CN_trees, observed_CNs, observed_CN_multiplicities
 
-# Define the simulation file folder as a Path object for easier file handling
-SIMULATIONS_FILE_FOLDER = Path("clonal_trees/SIMULATIONS/")
 
 
 def save_results_to_file(test_case: str, simulation_filename: str, simulated_chromosomes: Dict,
