@@ -4,6 +4,7 @@ from prismm.run_summed_BP_search.IO_operations import load_results_from_file, sa
 from prismm.run_summed_BP_search.print_things import pretty_print_data, print_dataframes, print_path_likelihoods
 from prismm.run_summed_BP_search.multiplicities_to_likelihoods import CN_multiplicities_to_likelihoods
 from prismm.run_summed_BP_search.compute_likelihoods import compute_likelihoods
+from prismm.utils.set_logging import set_logging
 
 
 def generate_default_paths(max_default_path_length):
@@ -14,10 +15,6 @@ def generate_default_paths(max_default_path_length):
                       if x + y <= max_default_path_length]
 
     return default_paths
-
-def set_logging(args):
-    level = logging.DEBUG if args.debug else logging.INFO
-    logging.basicConfig(level=level)
 
 def load_data_and_compute_likelihoods(args, default_paths):
     data = load_results_from_file(test_case=args.test_case, simulation_name=args.simulation_filename)

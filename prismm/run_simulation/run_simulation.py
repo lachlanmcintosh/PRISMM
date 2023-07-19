@@ -108,6 +108,12 @@ def main() -> None:
     # Get simulation parameters
     args = parse_arguments()
 
+    # Configure logging settings based on --debug argument
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+
     args = simulate_parameters_not_given_as_arguments(args)
 
     simulated_chromosomes, truth_trees, CN_trees, observed_CNs, observed_CN_multiplicities = simulate_and_analyze_genome(args)
