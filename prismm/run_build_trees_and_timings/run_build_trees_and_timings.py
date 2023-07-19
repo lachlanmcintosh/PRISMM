@@ -6,7 +6,11 @@ from prismm.run_build_trees_and_timings.parse_arguments import parse_arguments
 from prismm.run_build_trees_and_timings.IO_operations import load_results_from_file, save_dict_to_file
 from prismm.run_simulation.simulation_priors.random_number_generator import generate_dirichlet_probability
 from prismm.script_args import print_args
-
+from prismm.utils.set_logging import set_logging
+from prismm.run_build_trees_and_timings.get_SNV_multiplicities import count_SNV_multiplicities
+from prismm.utils.path_codes import generate_path, path_code_to_pre_mid_post, pre_mid_post_to_path_length
+from prismm.run_build_trees_and_timings.get_all_trees import get_all_trees
+from prismm.run_build_trees_and_timings.get_all_timings import get_all_timings
 
 def sum_SNV_counts(observed_SNV_multiplicities):
     d = observed_SNV_multiplicities
@@ -221,7 +225,7 @@ def find_solutions(SS, p_window, plambda_window, tree_flexibility, alpha):
         path, p_up_start, p_down_start, pre, mid, post = get_tree_and_rate_parameters(res, SEARCH_DEPTH, SS)
         print_results(res, path, p_up_start, p_down_start, pre, mid, post)
 
-        total_epochs = calculate_epochs(pre, mid, post)
+        total_epochs = pre_mid_post_to_path_length(pre, mid, post)
         assert total_epochs == pre + mid + post + 2
         max_epoch = total_epochs
 

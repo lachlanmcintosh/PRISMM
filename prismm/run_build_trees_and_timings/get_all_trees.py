@@ -1,4 +1,6 @@
-from utils import make_left_heavy
+from prismm.utils.make_left_heavy import make_left_heavy
+import logging 
+import copy
 
 ##### STEP 4; now we have SNV counts, make all possible trees that could explain those SNV counts for the given epoch structure “(pre,mid, post)”
 
@@ -243,3 +245,149 @@ def generate_trees(observed_CNs, SNV_CNs):
     return trees
 
 
+
+def get_all_trees(observed_SNV_multiplicities, observed_CNs, total_epochs, tree_flexibility):
+    trees = {}
+    for chrom in observed_SNV_multiplicities:
+        logging.debug(chrom)
+        logging.debug(observed_CNs)
+        logging.debug(observed_SNV_multiplicities)
+
+        all_trees = generate_trees(
+            observed_CNs=observed_CNs[chrom],
+            SNV_CNs=list(observed_SNV_multiplicities[chrom].keys())
+        )
+        trees_to_keep = []
+        for tree in all_trees:
+            depth = max_tree_depth(tree)
+            if tree_in_bounds(tree,total_epochs,tree_flexibility):
+                trees_to_keep.append(tree)
+        trees[chrom] = copy.deepcopy(trees_to_keep)
+
+        # check there is a tree and explain why:
+        if len(trees_to_keep) == 0:
+            results = all_trees
+            logging.info("%s", results)
+            for result in results:
+                logging.debug("%s", max_tree_depth(result))
+
+            logging.info("trees are of length 0")
+            tests = [tree_in_bounds(tree,total_epochs,tree_flexibility) for tree in all_trees]
+            logging.info("tests %s", tests)
+            logging.info("any tests %s", any(tests))
+            logging.info("chrom %s", chrom)
+            logging.info("trees %s", all_trees)
+            logging.info("max_tree_depth %s", [max_tree_depth(tree) for tree in all_trees])
+            logging.info("bounds %s", (total_epochs +2  - tree_flexibility,total_epochs + 2))
+            logging.info("total_epochs %s", total_epochs)
+
+            return None
+
+    return trees
+
+def max_tree_depth(tree):
+    """
+    Calculate the maximum depth of a given tree.
+
+    The tree is represented as a tuple of nested tuples, where each inner tuple
+    represents a subtree. The depth of the tree is the length of the longest
+    path from the root to a leaf node.
+
+    Args:
+        tree (tuple): The tree to calculate the depth of.
+
+    Returns:
+        int: The maximum depth of the tree.
+    """
+    if not tree:
+        return 0
+
+    if not isinstance(tree, tuple):
+        raise ValueError("Invalid input. Tree must be a tuple of nested tuples.")
+
+    max_depth = 0
+    for subtree in tree[1:]:
+        depth = max_tree_depth(subtree)
+        max_depth = max(max_depth, depth)
+
+    return max_depth + 1
+
+
+def test_max_tree_depth():
+    tree1 = (6, (3,), (3, (2,), (1,)))
+    tree2 = (1, (2, (3,)), (4, (5, (6,))))
+    tree3 = (1,)
+    tree4 = ()
+    tree5 = (1, (2, (3, (4, (5, (6,))))))
+    tree6 = (4, (2, (1,), (1,)), (2, (1,), (1,)))
+
+    assert max_tree_depth(tree1) == 3, f"Failed for tree1: {tree1}"
+    assert max_tree_depth(tree2) == 4, f"Failed for tree2: {tree2}"
+    assert max_tree_depth(tree3) == 1, f"Failed for tree3: {tree3}"
+    assert max_tree_depth(tree4) == 0, f"Failed for tree4: {tree4}"
+    assert max_tree_depth(tree5) == 6, f"Failed for tree5: {tree5}"
+    assert max_tree_depth(tree6) == 3, f"Failed for tree5: {tree5}"
+
+
+test_max_tree_depth()
+
+def tree_in_bounds(tree,total_epochs,tree_flexibility):
+    # it is plus three because the root node is fictional, and the next two nodes have occured prior to the simulation and the leaf nodes don't need any SNVs
+    # ahh it should actually be 2 because the root node is fictional but either the next two nodes or the root node something needs to happen
+    depth = max_tree_depth(tree)
+    return depth >= total_epochs + 2 - tree_flexibility and depth <= total_epochs + 2
+
+
+
+
+def label_tree(tree, label_count, parents, label_to_copy):
+    if label_to_copy == {} or label_count == 0:
+        assert parents == {}, f"Unexpected value for parents: {parents}"
+        assert label_to_copy == {}, f"Unexpected value for label_to_copy: {label_to_copy}"
+        assert label_count == 0, f"Unexpected value for label_count: {label_count}"
+
+    tree = list(tree)
+
+    unique_label = label_count
+    label_to_copy[unique_label] = tree[0]
+    tree[0] = unique_label
+
+    new_parent = unique_label
+
+    if len(tree) >= 2:
+        tree[1], label_count, parents, label_to_copy = label_tree(tree[1], label_count+1, parents, label_to_copy)
+        parents[tree[1][0]] = new_parent
+
+        if len(tree) == 3:
+            tree[2], label_count, parents, label_to_copy = label_tree(tree[2], label_count+1, parents, label_to_copy)
+            parents[tree[2][0]] = new_parent
+
+    return (tree, label_count, parents, label_to_copy)
+
+
+def test_label_tree():
+    tree_1 = (5, (3,), (2, (1,), (1,)))
+    expected_tree_1 = (0, (1,), (2, (3,), (4,)))
+    parents_1 = {1: 0, 2: 0, 3: 2, 4: 2}
+    label_to_copy_1 = {0: 5, 1: 3, 2: 2, 3: 1, 4: 1}
+
+    result_tree_1, _, result_parents_1, result_label_to_copy_1 = label_tree(tree_1, 0, {}, {})
+
+    assert forests_are_equal([result_tree_1], [expected_tree_1]), f"Expected {expected_tree_1}, but got {result_tree_1}"
+    assert result_parents_1 == parents_1, f"Expected {parents_1}, but got {result_parents_1}"
+    assert result_label_to_copy_1 == label_to_copy_1, f"Expected {label_to_copy_1}, but got {result_label_to_copy_1}"
+
+    tree_2 = (6, (3,), (3, (2,), (1,)))
+    expected_tree_2 = (0, (1,), (2, (3,), (4,)))
+    parents_2 = {1: 0, 2: 0, 3: 2, 4: 2}
+    label_to_copy_2 = {0: 6, 1: 3, 2: 3, 3: 2, 4: 1}
+
+    result_tree_2, _, result_parents_2, result_label_to_copy_2 = label_tree(tree_2, 0, {}, {})
+
+    assert forests_are_equal([result_tree_2], [expected_tree_2]), f"Expected {expected_tree_2}, but got {result_tree_2}"
+    assert result_parents_2 == parents_2, f"Expected {parents_2}, but got {result_parents_2}"
+    assert result_label_to_copy_2 == label_to_copy_2, f"Expected {label_to_copy_2}, but got {result_label_to_copy_2}"
+
+
+
+test_label_tree()

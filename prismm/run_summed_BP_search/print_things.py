@@ -2,6 +2,7 @@ import json
 import logging
 from utils.pretty_print import pretty_print
 from utils.path_codes import generate_path
+from prismm.run_summed_BP_search.count_higher_likelihood_paths import count_higher_likelihood_paths
 
 
 def print_path_likelihoods(likelihoods, searchable_likelihoods, marginal_likelihoods, top_likelihoods, default_paths, data):
