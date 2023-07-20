@@ -113,11 +113,6 @@ def sort_simulation_results_by_likelihood(solutions):
     """
     return sorted(solutions, key=lambda x: x['est_neg_loglik'], reverse=True)
 
-
-
-
-
-
 def add_ev_strings_and_counts_to_dicts(SS):
     truth_str = get_ev_string(SS['pre'], SS['mid'], SS['post'])
     true_GD_count = count_genome_doublings(truth_str)

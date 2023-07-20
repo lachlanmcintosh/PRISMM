@@ -69,20 +69,38 @@ def inject_io_logging(code: str) -> str:
     logging_decorator = [
         "from functools import wraps",
         "import os",
+        "import copy",
         "import inspect",
         "",
         "def log_io(func):",
         "    @wraps(func)",
         "    def wrapper(*args, **kwargs):",
+        "        # Copy the mutable input arguments before execution",
         "        arg_names = inspect.getfullargspec(func).args",
-        "        arg_values = {**dict(zip(arg_names, args)), **kwargs}",
+        "        args_dict = {**dict(zip(arg_names, args)), **kwargs}",
+        "        input_copies = {arg: copy.deepcopy(value) for arg, value in args_dict.items() if isinstance(value, (list, dict, set))}",
+        "",
         "        result = func(*args, **kwargs)",
         "",
+        "        # Identify and log changes to the mutable input arguments",
+        "        changed_args = {arg: value for arg, value in args_dict.items() if isinstance(value, (list, dict, set)) and value != input_copies.get(arg)}",
+        "",
+        "        # Check and create IO_LOGGER directory if it doesn't exist",
         "        if not os.path.exists('IO_LOGGER'):",
         "            os.mkdir('IO_LOGGER')",
-        "        with open(f'IO_LOGGER/{func.__name__}_io_log.txt', 'a') as f:",
-        "            f.write(f'Input: {repr(arg_values)}\\n')",
-        "            f.write(f'Output: {repr(result)}\\n')",
+        "",
+        "        if changed_args:",
+        "            with open(f'IO_LOGGER/{func.__name__}_io_log.txt', 'a') as f:",
+        "                f.write(f'Changed input: {repr(changed_args)}\\n')",
+        "",
+        "        # If the function returns None, log the state of the mutable input arguments",
+        "        if result is None:",
+        "            with open(f'IO_LOGGER/{func.__name__}_io_log.txt', 'a') as f:",
+        "                f.write(f'Final state of mutable input: {repr(changed_args)}\\n')",
+        "        else:",
+        "            with open(f'IO_LOGGER/{func.__name__}_io_log.txt', 'a') as f:",
+        "                f.write(f'Input: {repr(args_dict)}\\n')",
+        "                f.write(f'Output: {repr(result)}\\n')",
         "",
         "        return result",
         "    return wrapper",
@@ -99,6 +117,8 @@ def inject_io_logging(code: str) -> str:
 
     return '\n'.join(lines_with_logging)
 
+
+
 def adjust_imports(code: str, base_dir: str) -> str:
     """
     Adjusts the import statements in the code based on the base directory.
@@ -114,20 +134,30 @@ def adjust_imports(code: str, base_dir: str) -> str:
         import_match = re.match(r'^import (.*)$', line)
         if from_import_match:
             module, _ = from_import_match.groups()
-            if base_dir in module:
+            if module.startswith(base_dir):
                 adjusted_lines.append(line.replace(module, module + '_IO'))
             else:
                 adjusted_lines.append(line)
         elif import_match:
             module = import_match.groups()[0]
-            if base_dir in module:
-                adjusted_lines.append(f'import {module}_IO')
-            else:
-                adjusted_lines.append(line)
+            if ' as ' in module:  # handle 'import x as y' case
+                module, alias = module.split(' as ')
+                alias = alias.strip()  # strip leading and trailing spaces
+                if module.startswith(base_dir):
+                    adjusted_lines.append(f'import {module}_IO as {alias}_IO')
+                else:
+                    adjusted_lines.append(line)
+            else:  # handle 'import x' case
+                if module.startswith(base_dir):
+                    adjusted_lines.append(f'import {module}_IO')
+                else:
+                    adjusted_lines.append(line)
         else:
             adjusted_lines.append(line)
 
     return '\n'.join(adjusted_lines)
+
+
 
 def generate_io_scripts(directory_path: str) -> None:
     """

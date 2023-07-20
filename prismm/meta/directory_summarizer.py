@@ -89,10 +89,10 @@ def analyze_python_file(filepath: Path) -> SummaryType:
 
     return analyzer.summary
 
-
 def summarize_directories(dirpaths: List[str]) -> Dict[str, Dict[str, SummaryType]]:
     """
     Returns a summary of the classes and functions in all Python files in given directories.
+    Ignores all *_IO.py files.
     """
     summary = {}
     for dirpath in dirpaths:
@@ -104,11 +104,13 @@ def summarize_directories(dirpaths: List[str]) -> Dict[str, Dict[str, SummaryTyp
         root_summary = {
             str(filepath): analyze_python_file(filepath)
             for filepath in dirpath_obj.rglob('*.py')
+            if not str(filepath).endswith('_IO.py')  # Exclude files ending with '_IO.py'
         }
         if root_summary:  # Ignore empty directories
             summary[dirpath] = root_summary
 
     return summary
+
 
 
 def print_summary(summary: Dict[str, Dict[str, SummaryType]], track_imports: bool) -> None:
@@ -150,6 +152,9 @@ def main() -> None:
     # Save summary to a JSON file
     with open('summary.json', 'w') as f:
         json.dump(summary, f, indent=4)
+
+    print_summary(summary, args.track_imports)
+
 
 if __name__ == "__main__":
     main()

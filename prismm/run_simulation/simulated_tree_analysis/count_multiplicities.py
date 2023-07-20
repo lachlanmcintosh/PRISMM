@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from collections import Counter
 
 def count_copy_numbers(simulated_chromosomes: Dict[str, List[Dict]]) -> Dict[str, List[int]]:
@@ -51,3 +51,10 @@ def count_copy_number_multiplicities(observed_copy_numbers: Dict[str, List[int]]
     multiplicities = count_CN_multiplicities(observed_copy_numbers)
 
     return multiplicities
+
+def count_copy_numbers_and_multiplicities(simulated_chromosomes: Dict[str, List[Dict]]) -> Tuple[Dict[str, List[int]], Dict[int, int]]:
+    
+    observed_CNs = count_copy_numbers(simulated_chromosomes=simulated_chromosomes)
+    observed_CN_multiplicities = count_copy_number_multiplicities(observed_copy_numbers=observed_CNs)
+
+    return observed_CNs, observed_CN_multiplicities

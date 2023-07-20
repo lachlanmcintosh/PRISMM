@@ -8,8 +8,10 @@ from prismm.run_analyse_trees.IO_operations import load_simulation_data, save_si
 from prismm.run_analyse_trees.process_results import sort_simulation_results_by_likelihood, get_all_trees_ready_for_comparison
 from prismm.run_analyse_trees.tree_things import filter_tree
 from prismm.run_analyse_trees.printing_things import print_solution_results, print_similarity_results, print_dicts_memory
-from prismm.run_analyse_trees.distance_functions import ZeroDistance, AbsoluteDifference, SquaredDistance, InfiniteDistance, compute_solution_similarity, add_relative_timing_comparison
+from prismm.run_analyse_trees.distance_functions import ZeroDistance, AbsoluteDifference, SquaredDistance, InfiniteDistance, compute_solution_similarity
 from prismm.run_analyse_trees.process_results import process_further
+from prismm.run_analyse_trees.relative_timing_functions import add_relative_timing_comparison
+
 
 def main(args) -> None:
     """

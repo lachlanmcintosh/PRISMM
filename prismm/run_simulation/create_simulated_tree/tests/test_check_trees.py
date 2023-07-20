@@ -1,4 +1,4 @@
- import pytest
+import pytest
 from check_trees import are_all_descendants_zero_in_tree_structure
 
 def test_are_all_descendants_zero_in_tree_structure_none_node():

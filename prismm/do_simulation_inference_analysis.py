@@ -1,5 +1,5 @@
 import argparse
-import prismm.script_args as script_args  
+import prismm.script_args as script_args
 from prismm.utils.set_logging import set_logging
 
 def parse_arguments():

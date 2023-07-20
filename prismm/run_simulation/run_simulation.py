@@ -5,7 +5,7 @@ from typing import Dict, List, Any, Tuple
 from pathlib import Path
 
 from prismm.run_simulation.simulate_cancer_genome.simulate_cancer_genome import simulate_cancer_genome
-from prismm.run_simulation.simulated_tree_analysis.count_multiplicities import count_copy_numbers, count_copy_number_multiplicities
+from prismm.run_simulation.simulated_tree_analysis.count_multiplicities import count_copy_numbers_and_multiplicities
 from prismm.run_simulation.create_simulated_tree.create_simulated_tree import create_truth_trees_from_simulation
 from prismm.run_simulation.create_simulated_tree.dict_tree_to_CN_tree import convert_truth_trees_to_CN_trees
 from prismm.run_simulation.simulated_tree_analysis.print import print_simulated_genome_data
@@ -47,9 +47,8 @@ def simulate_and_analyze_genome(args) -> Tuple[Dict, List, List, Dict, Dict]:
     )
 
     CN_trees = convert_truth_trees_to_CN_trees(truth_trees=copy.deepcopy(truth_trees))
-    observed_CNs = count_copy_numbers(simulated_chromosomes=simulated_chromosomes)
-    observed_CN_multiplicities = count_copy_number_multiplicities(observed_copy_numbers=observed_CNs)
 
+    observed_CNs, observed_CN_multiplicities = count_copy_numbers_and_multiplicities(simulated_chromosomes=simulated_chromosomes)
     return simulated_chromosomes, truth_trees, CN_trees, observed_CNs, observed_CN_multiplicities
 
 
