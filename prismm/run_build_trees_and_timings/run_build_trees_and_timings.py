@@ -4,9 +4,9 @@ import numpy as np
 
 from prismm.run_build_trees_and_timings.parse_arguments import parse_arguments
 from prismm.run_build_trees_and_timings.IO_operations import load_results_from_file, save_dict_to_file
-from prismm.run_simulation.simulation_priors.random_number_generator import generate_dirichlet_probability
+from prismm.run_simulation.simulation_priors.random_number_generator import generate_p_up_p_down_from_dirichlet_probability
 from prismm.script_args import print_args
-from prismm.utils.set_logging import set_logging
+from prismm.utils.set_logging_settings import set_logging_settings
 from prismm.run_build_trees_and_timings.get_SNV_multiplicities import count_SNV_multiplicities
 from prismm.utils.path_codes import generate_path, path_code_to_pre_mid_post, pre_mid_post_to_path_length
 from prismm.run_build_trees_and_timings.get_all_trees import get_all_trees
@@ -131,7 +131,7 @@ def calculate_log_likelihood(alpha, probabilities):
 
 def test_calculate_log_likelihood():
     alpha = [20, 20, 100]
-    probabilities = generate_dirichlet_probability(alpha)*100
+    probabilities = generate_p_up_p_down_from_dirichlet_probability(alpha)*100
     log_likelihood = calculate_log_likelihood(alpha, probabilities)
 
     assert isinstance(log_likelihood, np.float64), f"Output is not a float: {type(log_likelihood)}"
@@ -328,7 +328,7 @@ def init(args):
 def main(args):
     print("building trees and timing arrays from likely paths")
     print_args(args)
-    set_logging(args)
+    set_logging_settings(args)
 
     if args.debug:
         logging.basicConfig(level = logging.DEBUG)

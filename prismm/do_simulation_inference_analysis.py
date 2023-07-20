@@ -1,6 +1,6 @@
 import argparse
 import prismm.script_args as script_args
-from prismm.utils.set_logging import set_logging
+from prismm.utils.set_logging_settings import set_logging_settings
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
@@ -32,7 +32,7 @@ from prismm.run_analyse_trees.run_analyse_trees import main as run_analyse_trees
 
 def main():
     args = parse_arguments()
-    set_logging(args)
+    set_logging_settings(args)
 
     if 1 in args.run:
         run_simulation(args)

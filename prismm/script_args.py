@@ -1,13 +1,13 @@
 # File: script_args.py
 import argparse
 import logging
-from prismm.run_simulation.simulation_priors.random_number_generator import random_integer_log_scale
+
 
 def add_base_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument(
         '--test_case',
-        type=int,
-        default=0,
+        type=str,
+        default="0",
         help="The name or number of the test case you want to process."
     )
     parser.add_argument(
@@ -18,7 +18,7 @@ def add_base_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     )
     parser.add_argument(
         '--debug',
-        action='store_true',
+        default="info",
         help="Enable debug logging."
     )
     parser.add_argument(
@@ -68,7 +68,6 @@ def add_simulation_args(parser: argparse.ArgumentParser) -> argparse.ArgumentPar
     parser.add_argument(
         "--rate",
         type=int,
-        default=random_integer_log_scale(100, 1000000),
         help="The rate at which SNVs accumulate per epoch (optional, default: random integer between 100 and 1000000 sampled on a log scale)."
     )
     parser.add_argument(

@@ -1,22 +1,8 @@
 import pytest
-from dict_tree_to_CN_tree import get_child_and_complement_trees_from_truth_tree
 
-@pytest.fixture
-def truth_tree_none():
-    return {'unique_identifier': 0, 'parent': -1, 'epoch_created': 0, 'paternal': True, 'dead': False, 'child': None, 'complement': None, 'copy_number': 1, 'SNV_multiplicity': 0, 'epoch_killed': 0}
-
-@pytest.fixture
-def truth_tree_both():
-    return {'unique_identifier': -1, 'parent': None, 'epoch_created': 0, 'paternal': None, 'child': {'unique_identifier': 0, 'parent': -1, 'epoch_created': 0, 'paternal': True, 'dead': False, 'child': None, 'complement': None, 'copy_number': 1, 'SNV_multiplicity': 0, 'epoch_killed': 0}, 'complement': {'unique_identifier': 23, 'parent': -1, 'epoch_created': 0, 'paternal': False, 'dead': False, 'child': None, 'complement': None, 'copy_number': 1, 'SNV_multiplicity': 0, 'epoch_killed': 0}, 'copy_number': 2, 'SNV_multiplicity': 0, 'epoch_killed': 0}
-
-def test_get_child_and_complement_trees_from_truth_tree_none(truth_tree_none):
-    assert get_child_and_complement_trees_from_truth_tree(truth_tree_none) == (None, None)
-
-def test_get_child_and_complement_trees_from_truth_tree_both(truth_tree_both):
-    assert get_child_and_complement_trees_from_truth_tree(truth_tree_both) == ([1], [1])
 
 #################
-from dict_tree_to_CN_tree import convert_truth_tree_to_CN_tree
+from prismm.run_simulation.create_simulated_tree.phylo_tree_to_CN_tree import convert_truth_tree_to_CN_tree
 
 def test_convert_truth_tree_to_CN_tree_none(truth_tree_none):
     assert convert_truth_tree_to_CN_tree(truth_tree_none) == [1]

@@ -1,7 +1,7 @@
 from typing import List
 
 from prismm.run_simulation.parse_arguments import parse_arguments
-from prismm.utils.set_logging import set_logging
+from prismm.utils.set_logging_settings import set_logging_settings
 from prismm.script_args import print_args
 from prismm.run_analyse_trees.parse_arguments import parse_arguments
 from prismm.run_analyse_trees.IO_operations import load_simulation_data, save_simulation_data
@@ -32,7 +32,7 @@ def main(args) -> None:
     simulation_filename = args.simulation_filename
 
     # Configure logging settings based on --debug argument
-    set_logging(args)
+    set_logging_settings(args)
 
     SS = load_simulation_data(test_case, simulation_filename)
     SS["solutions"] = sort_simulation_results_by_likelihood(SS["solutions"])

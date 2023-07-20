@@ -3,10 +3,11 @@ from typing import Tuple, Union
 
 from prismm.run_simulation.simulation_priors.random_number_generator import (
     generate_poisson,
-    generate_dirichlet_probability,
+    generate_p_up_p_down_from_dirichlet_probability,random_integer_log_scale
 )
 from prismm.run_simulation.simulation_priors.print import print_simulation_parameters
 
+from prismm.utils.path_codes import pre_mid_post_to_path_length
 
 def sample_pre_mid_post(gd_probabilities: Tuple[float, float, float], max_epochs: int, lam: float) -> Tuple[int, int, int]:
     """
@@ -45,19 +46,9 @@ def sample_pre_mid_post(gd_probabilities: Tuple[float, float, float], max_epochs
                 generate_poisson(max_value=max_value, lam=lam))
 
 
-
 def simulate_parameters_not_given_as_arguments(args) -> None:
     """
-    Simulates parameters that are not given as arguments and sets default values if needed.
-
-    This function is used to generate and set values for several simulation parameters based on certain rules.
-    It also calls other helper functions to accomplish this task.
-
-    Args:
-        args: A namespace that holds the arguments for the simulation parameters.
-
-    Returns:
-        None
+    Simulates parameters that are not given as arguments and sets default values if needed, based on certain rules.
     """
 
     if args.pre is None or args.mid is None or args.post is None:
@@ -68,21 +59,14 @@ def simulate_parameters_not_given_as_arguments(args) -> None:
             lam=args.lam
             )
 
-    args.total_epochs = args.pre + args.mid + args.post + 2
+    args.total_epochs = pre_mid_post_to_path_length(args.pre, args.mid, args.post)
 
     if args.p_up is None or args.p_down is None:
         assert(args.p_up is None and args.p_down is None)
 
-        probabilities = generate_dirichlet_probability(args.alpha)
-        args.p_up, args.p_down, _ = probabilities
-    
-    print_simulation_parameters(
-        pre=args.pre,
-        mid=args.mid,
-        post=args.post,
-        p_up=args.p_up,
-        p_down=args.p_down,
-        rate=args.rate,
-    )
-    
+        args.p_up, args.p_down = generate_p_up_p_down_from_dirichlet_probability(args.alpha)
+
+    if args.rate is None:
+        args.rate = random_integer_log_scale(100, 1000000)
+
     return(args)

@@ -42,7 +42,7 @@ def insert_nodes_into_tree(tree: Dict, sorted_list: list) -> Dict:
         # new_node[1] is the node itself, new_node[0] is the unique_identifier  
     return tree
 
-def create_truth_trees_from_simulation(simulated_chromosomes: Dict, max_epochs: int) -> Dict:
+def create_phylogenetic_trees_from_simulation(simulated_chromosomes: Dict, total_epochs: int) -> Dict:
     """
     Given the simulated chromosomes, the function creates the truth trees.
     It creates a separate tree for each type of chromosome.
@@ -51,7 +51,7 @@ def create_truth_trees_from_simulation(simulated_chromosomes: Dict, max_epochs: 
     removing redundant nodes, and assigning 'epoch_killed' to nodes.
 
     :param simulated_chromosomes: A dictionary of simulated chromosomes.
-    :param max_epochs: The maximum number of epochs for simulation.
+    :param total_epochs: The maximum number of epochs for simulation.
     :return: A dictionary of truth trees for each chromosome type.
     """
     trees = {}
@@ -68,7 +68,7 @@ def create_truth_trees_from_simulation(simulated_chromosomes: Dict, max_epochs: 
         tree = remove_SNVs_from_tree_structure(tree)
         tree = remove_dead_leaf_nodes_from_tree_structure(tree)
         tree = remove_redundant_parents_from_tree_structure(tree)
-        tree = assign_epoch_killed_to_tree_structure(tree, max_epochs)
+        tree = assign_epoch_killed_to_tree_structure(tree, total_epochs)
 
         trees[chrom_type] = tree
 

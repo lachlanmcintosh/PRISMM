@@ -1,7 +1,6 @@
 import copy
 from typing import Dict, List, Tuple, Optional
 
-from prismm.run_simulation.create_simulated_tree.dict_tree_to_CN_tree import convert_truth_tree_to_CN_tree, get_child_and_complement_trees_from_truth_tree
 from prismm.utils.make_left_heavy import make_left_heavy
 
 

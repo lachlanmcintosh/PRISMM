@@ -34,7 +34,8 @@ def random_integer_log_scale(min_value, max_value):
     random_log = random.uniform(log_min, log_max)
     return int(round(math.exp(random_log)))
 
-def generate_dirichlet_probability(alpha):
+
+def generate_p_up_p_down_from_dirichlet_probability(alpha):
     """
     Generate probabilities based on the Dirichlet distribution.
 
@@ -47,13 +48,19 @@ def generate_dirichlet_probability(alpha):
                   rounded to 2 decimal places and adjusted to sum to 1.
     """
     probabilities = np.random.dirichlet(alpha)
+    assert len(probabilities) == 3
 
     # Round probabilities to 2 decimal places
     probabilities = np.round(probabilities, 2)
 
-    # Adjust the last probability so the sum is 1
-    probabilities[-1] = 1 - np.sum(probabilities[:-1])
+    probabilities = probabilities[:2]
 
+    assert len(probabilities) == 2
+
+    for prob in probabilities:
+        assert prob == round(prob,2)
+        assert 0 <= prob <= 1, "p_up must be between 0 and 1 inclusive"
+    
     return probabilities
 
 def generate_poisson(max_value: int, lam: float, max_attempts: int = 1000) -> int:

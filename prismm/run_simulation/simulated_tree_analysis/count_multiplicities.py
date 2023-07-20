@@ -4,12 +4,6 @@ from collections import Counter
 def count_copy_numbers(simulated_chromosomes: Dict[str, List[Dict]]) -> Dict[str, List[int]]:
     """
     Count the number of each parental specific copy number found in the genome.
-
-    Args:
-        simulated_chromosomes: The input simulated chromosomes.
-
-    Returns:
-        A dictionary mapping chromosome type to a list of counts of living chromosomes for each parent.
     """
     observed_copy_numbers = {}
     for chrom_type in simulated_chromosomes:
@@ -20,7 +14,8 @@ def count_copy_numbers(simulated_chromosomes: Dict[str, List[Dict]]) -> Dict[str
     return observed_copy_numbers
 
 
-def count_CN_multiplicities(observed_CNs: Dict[str, List[int]]) -> Dict[int, int]:
+
+def count_copy_number_multiplicities(observed_copy_numbers: Dict[str, List[int]]) -> Dict[int, int]:
     """
     Count the multiplicities of each observed copy number in the genome.
 
@@ -32,29 +27,14 @@ def count_CN_multiplicities(observed_CNs: Dict[str, List[int]]) -> Dict[int, int
     """
     multiplicities = Counter()
 
-    for CN in observed_CNs.values():
-        multiplicities.update(CN)
-
-    return multiplicities
-
-
-def count_copy_number_multiplicities(observed_copy_numbers: Dict[str, List[int]]) -> Dict[int, int]:
-    """
-    Count the multiplicities of each observed copy number in the genome.
-
-    Args:
-        observed_copy_numbers: The input observed copy numbers.
-
-    Returns:
-        A dictionary mapping each observed copy number to its multiplicity.
-    """
-    multiplicities = count_CN_multiplicities(observed_copy_numbers)
+    for copy_number in observed_copy_numbers.values():
+        multiplicities.update(copy_number)
 
     return multiplicities
 
 def count_copy_numbers_and_multiplicities(simulated_chromosomes: Dict[str, List[Dict]]) -> Tuple[Dict[str, List[int]], Dict[int, int]]:
     
-    observed_CNs = count_copy_numbers(simulated_chromosomes=simulated_chromosomes)
-    observed_CN_multiplicities = count_copy_number_multiplicities(observed_copy_numbers=observed_CNs)
+    observed_copy_numbers = count_copy_numbers(simulated_chromosomes=simulated_chromosomes)
+    observed_copy_number_multiplicities = count_copy_number_multiplicities(observed_copy_numbers=observed_copy_numbers)
 
-    return observed_CNs, observed_CN_multiplicities
+    return observed_copy_numbers, observed_copy_number_multiplicities

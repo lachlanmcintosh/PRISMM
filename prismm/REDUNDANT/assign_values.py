@@ -1,3 +1,7 @@
+"""
+This module defines classes and functions for setting up parameters for a simulation. 
+"""
+
 import numpy as np
 from scipy.stats import poisson
 from typing import Optional, List, Tuple
@@ -30,7 +34,7 @@ class EpochAssigner:
         """
         self.num_gd_rounds = num_gd_rounds
         self.prob_E = self._compute_prob_E(lam, max_epochs)
-        self.pre, self.mid, self.post = None, None, None # TODO: why are these initialized to 0?
+        self.pre, self.mid, self.post = None, None, None 
         self.max_epochs = max_epochs
 
     @staticmethod

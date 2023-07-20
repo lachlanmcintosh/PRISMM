@@ -4,7 +4,7 @@ from prismm.run_summed_BP_search.IO_operations import load_results_from_file, sa
 from prismm.run_summed_BP_search.print_things import pretty_print_data, print_dataframes, print_path_likelihoods
 from prismm.run_summed_BP_search.multiplicities_to_likelihoods import CN_multiplicities_to_likelihoods
 from prismm.run_summed_BP_search.compute_likelihoods import compute_likelihoods
-from prismm.utils.set_logging import set_logging
+from prismm.utils.set_logging_settings import set_logging_settings
 from prismm.script_args import print_args
 
 
@@ -67,7 +67,7 @@ def save_and_print_dataframes(args, data, likelihoods, computed_likelihoods, def
 def main(args):
     print("doing the summed BP search")
     print_args(args)
-    set_logging(args)
+    set_logging_settings(args)
 
     default_paths = generate_default_paths(max_default_path_length=args.max_default_path_length)
     data, likelihoods, computed_likelihoods = load_data_and_compute_likelihoods(args, default_paths)
