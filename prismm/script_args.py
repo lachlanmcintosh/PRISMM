@@ -18,6 +18,7 @@ def add_base_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     )
     parser.add_argument(
         '--debug',
+        type=str,
         default="info",
         help="Enable debug logging."
     )
@@ -141,5 +142,3 @@ def print_args(args):
     logging.info("Arguments:")
     for arg in vars(args):
         logging.info(f"{arg}: {getattr(args, arg)}")
-    print()
-

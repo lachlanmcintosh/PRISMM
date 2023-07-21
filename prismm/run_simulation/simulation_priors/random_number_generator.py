@@ -1,91 +1,76 @@
 import random
 import math
 import numpy as np
+import logging
 
-def random_decimal(min_value, max_value, decimal_places):
-    """
-    Generate a random decimal number between min_value and max_value with a specified number of decimal places.
-
-    Args:
-    min_value (float): The minimum value for the generated number.
-    max_value (float): The maximum value for the generated number.
-    decimal_places (int): The number of decimal places for the generated number.
-
-    Returns:
-    float: A random decimal number between min_value and max_value with the specified number of decimal places.
-    """
-    random_number = random.uniform(min_value, max_value)
-    return round(random_number, decimal_places)
-
-
-def random_integer_log_scale(min_value, max_value):
+def sample_SNV_rate_on_uniform_log_scale(min_value: int, max_value: int) -> int:
     """
     Generate a random integer between min_value and max_value on a logarithmic scale.
-
-    Args:
-    min_value (int): The minimum value for the generated number.
-    max_value (int): The maximum value for the generated number.
+    
+    Parameters:
+    min_value (int): The lower limit for the generated random integer.
+    max_value (int): The upper limit for the generated random integer.
 
     Returns:
     int: A random integer between min_value and max_value on a logarithmic scale.
     """
+    if min_value <= 0 or max_value <= 0:
+        raise ValueError("Both min_value and max_value should be positive")
+
     log_min = math.log(min_value)
     log_max = math.log(max_value)
     random_log = random.uniform(log_min, log_max)
+
+    # this needn't be an integer, but it simplifies reading the logs of the simulation at no cost
     return int(round(math.exp(random_log)))
 
 
-def generate_p_up_p_down_from_dirichlet_probability(alpha):
+def sample_p_up_and_p_down_from_dirichelet_distribution(alpha: list) -> np.ndarray:
     """
     Generate probabilities based on the Dirichlet distribution.
-
-    Args:
-        alpha: list or np.array
-            Parameters of the Dirichlet distribution.
+    
+    Parameters:
+    alpha (list): Parameters of the Dirichlet distribution.
 
     Returns:
-        np.array: Probabilities generated from the Dirichlet distribution,
-                  rounded to 2 decimal places and adjusted to sum to 1.
+    np.ndarray: An array of probabilities.
     """
+    if len(alpha) != 3:
+        raise ValueError("alpha should have exactly 3 elements")
+
     probabilities = np.random.dirichlet(alpha)
-    assert len(probabilities) == 3
 
     # Round probabilities to 2 decimal places
     probabilities = np.round(probabilities, 2)
-
     probabilities = probabilities[:2]
 
-    assert len(probabilities) == 2
-
     for prob in probabilities:
-        assert prob == round(prob,2)
+        assert prob == round(prob, 2)
         assert 0 <= prob <= 1, "p_up must be between 0 and 1 inclusive"
     
     return probabilities
 
-def generate_poisson(max_value: int, lam: float, max_attempts: int = 1000) -> int:
+
+def sample_num_anueploidy_epochs_before_GD_from_trimmed_poisson_distribution(max_value: int, lam: float, max_attempts: int = 10000) -> int:
     """
     Generate a random number from a Poisson distribution, 
     where the number is within the range defined by min_value and max_value.
-
-    Args:
-        min_value: The minimum value for the generated number.
-        max_value: The maximum value for the generated number.
-        lam: The lambda parameter for the Poisson distribution.
-        max_attempts: The maximum number of attempts to generate a suitable number.
+    
+    Parameters:
+    max_value (int): The maximum value that can be generated.
+    lam (float): The lambda parameter for the Poisson distribution.
+    max_attempts (int, optional): The maximum number of attempts to generate the number. Defaults to 10000.
 
     Returns:
-        A random number from a Poisson distribution within the specified range.
-
-    Raises:
-        ValueError: If a suitable number can't be generated within max_attempts.
+    int: A random number generated from a Poisson trimmed distribution.
     """
+    if max_value < 0 or lam < 0 or max_attempts <= 0:
+        raise ValueError("max_value, lam should be non-negative and max_attempts should be positive")
+
     for _ in range(max_attempts):
         value = np.random.poisson(lam)
         if 0 <= value <= max_value:
             return value
+
+    logging.error(f"Could not generate a suitable random number within {max_attempts} attempts.")
     raise ValueError(f"Could not generate a suitable random number within {max_attempts} attempts.")
-
-
-
-

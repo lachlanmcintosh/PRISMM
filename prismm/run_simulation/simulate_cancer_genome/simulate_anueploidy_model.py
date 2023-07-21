@@ -75,12 +75,17 @@ def simulate_anueploidy(
     assert 0 <= p_down <= 1, "p_down should be between 0 and 1"
     assert p_up + p_down <= 1, "The sum of p_up and p_down should be less than or equal to 1"
 
+    assert sorted(simulated_chromosomes.keys()) == list(range(23)), f"Assertion failed. The keys are: {sorted(simulated_chromosomes.keys())}"
+
     for chrom_type, chromosomes in simulated_chromosomes.items():
         original_chrom_count = chrom_count  # store the original count before the loop
         new_chromosomes, temp_chrom_count = simulate_chromosome_changes(chromosomes, epoch, chrom_count, p_up, p_down)
-        while not any(chrom["dead"] == False for chrom in new_chromosomes):
+        while all(chrom["dead"] == True for chrom in new_chromosomes):
             new_chromosomes, temp_chrom_count = simulate_chromosome_changes(chromosomes, epoch, original_chrom_count, p_up, p_down)
         simulated_chromosomes[chrom_type] = new_chromosomes
         chrom_count = temp_chrom_count  # update the count only after a successful loop
+
+    for chrom_type in simulated_chromosomes:
+        assert not all(chrom["dead"] == True for chrom in simulated_chromosomes[chrom_type])
 
     return chrom_count, simulated_chromosomes

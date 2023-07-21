@@ -1,7 +1,7 @@
 import logging
 from typing import Dict
 
-from prismm.run_simulation.create_simulated_tree.insert_node import insert_node_into_tree_structure
+from prismm.run_simulation.create_simulated_tree.insert_node import insert_nodes_into_tree
 from prismm.run_simulation.create_simulated_tree.add_metadata import (
     add_copynumber_to_tree_structure, 
     add_SNV_multiplicity_to_tree_structure, 
@@ -28,19 +28,6 @@ def create_root_node() -> Dict:
         'complement': None,
         'SNVs': []
     }
-
-def insert_nodes_into_tree(tree: Dict, sorted_list: list) -> Dict:
-    """
-    Insert all nodes and add metadata to tree and simplify.
-
-    :param tree: The tree into which nodes are to be inserted.
-    :param sorted_list: The sorted list of nodes to be inserted.
-    :return: The tree with nodes inserted.
-    """
-    for new_node in sorted_list:
-        tree = insert_node_into_tree_structure(tree, new_node[1])  
-        # new_node[1] is the node itself, new_node[0] is the unique_identifier  
-    return tree
 
 def create_phylogenetic_trees_from_simulation(simulated_chromosomes: Dict, total_epochs: int) -> Dict:
     """

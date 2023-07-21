@@ -2,11 +2,10 @@ import random
 from typing import Tuple, Union
 
 from prismm.run_simulation.simulation_priors.random_number_generator import (
-    generate_poisson,
-    generate_p_up_p_down_from_dirichlet_probability,random_integer_log_scale
+    sample_SNV_rate_on_uniform_log_scale,
+    sample_p_up_and_p_down_from_dirichelet_distribution,
+    sample_num_anueploidy_epochs_before_GD_from_trimmed_poisson_distribution
 )
-from prismm.run_simulation.simulation_priors.print import print_simulation_parameters
-
 from prismm.utils.path_codes import pre_mid_post_to_path_length
 
 def sample_pre_mid_post(gd_probabilities: Tuple[float, float, float], max_epochs: int, lam: float) -> Tuple[int, int, int]:
@@ -31,19 +30,19 @@ def sample_pre_mid_post(gd_probabilities: Tuple[float, float, float], max_epochs
     max_value = (max_epochs - 2) // (num_rounds_GD + 1)
 
     if num_rounds_GD == 0:
-        return (generate_poisson(max_value=max_value, lam=lam), 
+        return (sample_num_anueploidy_epochs_before_GD_from_trimmed_poisson_distribution(max_value=max_value, lam=lam), 
                 -1, 
                 -1)
 
     elif num_rounds_GD == 1:
-        return (generate_poisson(max_value=max_value, lam=lam), 
-                generate_poisson(max_value=max_value, lam=lam), 
+        return (sample_num_anueploidy_epochs_before_GD_from_trimmed_poisson_distribution(max_value=max_value, lam=lam), 
+                sample_num_anueploidy_epochs_before_GD_from_trimmed_poisson_distribution(max_value=max_value, lam=lam), 
                 -1)
     
     else:
-        return (generate_poisson(max_value=max_value, lam=lam),
-                generate_poisson(max_value=max_value, lam=lam),
-                generate_poisson(max_value=max_value, lam=lam))
+        return (sample_num_anueploidy_epochs_before_GD_from_trimmed_poisson_distribution(max_value=max_value, lam=lam),
+                sample_num_anueploidy_epochs_before_GD_from_trimmed_poisson_distribution(max_value=max_value, lam=lam),
+                sample_num_anueploidy_epochs_before_GD_from_trimmed_poisson_distribution(max_value=max_value, lam=lam))
 
 
 def simulate_parameters_not_given_as_arguments(args) -> None:
@@ -64,9 +63,9 @@ def simulate_parameters_not_given_as_arguments(args) -> None:
     if args.p_up is None or args.p_down is None:
         assert(args.p_up is None and args.p_down is None)
 
-        args.p_up, args.p_down = generate_p_up_p_down_from_dirichlet_probability(args.alpha)
+        args.p_up, args.p_down = sample_p_up_and_p_down_from_dirichelet_distribution(args.alpha)
 
     if args.rate is None:
-        args.rate = random_integer_log_scale(100, 1000000)
+        args.rate = sample_SNV_rate_on_uniform_log_scale(100, 1000000)
 
     return(args)

@@ -4,7 +4,7 @@ import numpy as np
 
 from prismm.run_build_trees_and_timings.parse_arguments import parse_arguments
 from prismm.run_build_trees_and_timings.IO_operations import load_results_from_file, save_dict_to_file
-from prismm.run_simulation.simulation_priors.random_number_generator import generate_p_up_p_down_from_dirichlet_probability
+from prismm.run_simulation.simulation_priors.random_number_generator import sample_p_up_and_p_down_from_dirichelet_distribution
 from prismm.script_args import print_args
 from prismm.utils.set_logging_settings import set_logging_settings
 from prismm.run_build_trees_and_timings.get_SNV_multiplicities import count_SNV_multiplicities
@@ -131,7 +131,7 @@ def calculate_log_likelihood(alpha, probabilities):
 
 def test_calculate_log_likelihood():
     alpha = [20, 20, 100]
-    probabilities = generate_p_up_p_down_from_dirichlet_probability(alpha)*100
+    probabilities = sample_p_up_and_p_down_from_dirichelet_distribution(alpha)*100
     log_likelihood = calculate_log_likelihood(alpha, probabilities)
 
     assert isinstance(log_likelihood, np.float64), f"Output is not a float: {type(log_likelihood)}"

@@ -13,8 +13,6 @@ def count_copy_numbers(simulated_chromosomes: Dict[str, List[Dict]]) -> Dict[str
         ]
     return observed_copy_numbers
 
-
-
 def count_copy_number_multiplicities(observed_copy_numbers: Dict[str, List[int]]) -> Dict[int, int]:
     """
     Count the multiplicities of each observed copy number in the genome.
@@ -25,12 +23,18 @@ def count_copy_number_multiplicities(observed_copy_numbers: Dict[str, List[int]]
     Returns:
         A dictionary mapping each observed copy number to its multiplicity.
     """
+    # Create an empty Counter object
     multiplicities = Counter()
 
+    # Update the Counter with the observed copy numbers
     for copy_number in observed_copy_numbers.values():
         multiplicities.update(copy_number)
 
+    # Sort the multiplicities dictionary by its keys in ascending order and return it
+    multiplicities = dict(sorted(multiplicities.items()))
+
     return multiplicities
+
 
 def count_copy_numbers_and_multiplicities(simulated_chromosomes: Dict[str, List[Dict]]) -> Tuple[Dict[str, List[int]], Dict[int, int]]:
     

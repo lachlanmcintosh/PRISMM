@@ -1,72 +1,97 @@
 import copy
 from typing import Dict, List, Tuple, Optional
 
-from prismm.utils.make_left_heavy import make_left_heavy
+
+def deep_copy_node(node: Dict, epoch_created: Optional[int] = None) -> Dict:
+    """
+    Create a deep copy of a node and reset its 'child' and 'complement' fields.
+
+    :param node: The node to be copied.
+    :param epoch_created: The 'epoch_created' value for the copied node. If None, the copied node's 'epoch_created' is used.
+    :return: The copied node.
+    """
+    copied_node = copy.deepcopy(node)
+    copied_node["child"] = None
+    copied_node["complement"] = None
+    if epoch_created is not None:
+        copied_node["epoch_created"] = epoch_created
+    return copied_node
 
 
-def insert_node_into_leaf(tree: Dict, node: Dict) -> None:
+def validate_leaf_node(tree: Dict) -> None:
+    """
+    Validate that a given tree is a leaf node.
+
+    :param tree: The tree to validate.
+    :raises ValueError: If the tree is not a leaf node.
+    """
+    if tree["child"] is not None:
+        raise ValueError(f"Expected tree['child'] to be None, but got {tree['child']}")
+    if tree["complement"] is not None:
+        raise ValueError(f"Expected tree['complement'] to be None, but got {tree['complement']}")
+
+
+def insert_node_immediately_under_here(tree: Dict, node: Dict) -> None:
     """
     Inserts a node into a leaf of a given tree.
 
     :param tree: The tree where the node is to be inserted.
     :param node: The node to be inserted into the tree.
+    :raises ValueError: If the tree is not a leaf node.
     """
 
-    # Assert that the given tree is a leaf node
-    assert tree["child"] is None, f"Expected tree['child'] to be None, but got {tree['child']}"
-    assert tree["complement"] is None, f"Expected tree['complement'] to be None, but got {tree['complement']}"
+    validate_leaf_node(tree)
 
     # Create a deep copy of the tree as the complement
-    tree["complement"] = copy.deepcopy(tree)
-    tree["complement"]["epoch_created"] = node["epoch_created"]
+    tree["complement"] = deep_copy_node(tree, epoch_created=node["epoch_created"])
 
     # Insert the node as a child
-    tree["child"] = copy.deepcopy(node)
-    tree["child"]["child"] = None
-    tree["child"]["complement"] = None
+    tree["child"] = deep_copy_node(node)
 
 
+def validate_complement_node(tree: Dict) -> None:
+    """
+    Validate that a given tree has a complement node.
 
-def insert_node_under_complement(tree: Dict, node: Dict) -> None:
+    :param tree: The tree to validate.
+    :raises ValueError: If the tree does not have a complement node.
+    """
+    if tree["complement"] is None:
+        raise ValueError(f"Expected tree['complement'] to not be None, but it was.")
+
+
+def validate_original_chromosome(node: Dict) -> None:
+    """
+    Validate that a given node is an original chromosome.
+
+    :param node: The node to validate.
+    :raises ValueError: If the node is not an original chromosome.
+    """
+    expected_keys = {"unique_identifier", "epoch_created", "parent", "SNVs", "paternal", "dead", "sibling"}
+    if set(node.keys()) != expected_keys:
+        raise ValueError(f"Unexpected keys: {node.keys()} - Expected keys: {expected_keys}")
+    if node["unique_identifier"] >= 46:
+        raise ValueError(f"Expected node['unique_identifier'] to be less than 46, but got {node['unique_identifier']}")
+
+
+def insert_node_under_this_branch(tree: Dict, node: Dict) -> None:
     """
     Inserts a node under the complement of a given tree.
 
     :param tree: The tree where the node is to be inserted.
     :param node: The node to be inserted under the complement of the tree.
+    :raises ValueError: If the tree does not have a complement node.
     """
 
-    # nodes are inserted into the tree in their order of their unique identifier
-    # which maps to the order of chromosomes created.
-    # there may be many children of "complement" which is why it gets dragged down the tree
-    # to find out when it bifurcated into each new chromosome it is the parent of
-
-    # complement cannot be None, because the "child" node is always created first
-    # and complement is always created with it as a place holder
-    assert tree["complement"] is not None, f"Expected tree['complement'] to not be None, but it was."
+    validate_complement_node(tree)
 
     if node["parent"] == -1:
-        # these can't get passed further on because they are the original chromosomes
-        expected_keys = {"unique_identifier", "epoch_created", "parent", "SNVs", "paternal", "dead"}
-        assert set(node.keys()) == expected_keys, f"Unexpected keys: {node.keys()} - Expected keys: {expected_keys}"
-
-        assert node["unique_identifier"] < 46, f"Expected node['unique_identifier'] to be less than 46, but got {node['unique_identifier']}"
-
-        tree["complement"] = copy.deepcopy(node)
-        tree["complement"]["child"] = None
-        tree["complement"]["complement"] = None
+        validate_original_chromosome(node)
+        tree["complement"] = deep_copy_node(node)
     else:
-        # we don't know how far down the complement line that we have to insert the node: so just keep going until it is done:
+        tree["complement"] = insert_node_into_tree(tree["complement"], node)
 
-        # insert_node_under_complement and insert_node_under_leaf do not return anything,
-        # they modify the tree structure given to them,
-        # why do we return something here from insert_node_into_tree_structure? CHECKHERE
-
-        tree["complement"] = insert_node_into_tree_structure(tree["complement"], node)
-
-import copy
-from typing import Dict, Optional
-
-def insert_node_into_tree(child_tree: Optional[Dict], complement_tree: Optional[Dict], node: Optional[Dict]) -> Tuple[Optional[Dict], Optional[Dict]]:
+def insert_node_into_either_subtree(child_tree: Optional[Dict], complement_tree: Optional[Dict], node: Optional[Dict]) -> Tuple[Optional[Dict], Optional[Dict]]:
     """
     Insert a node into the child and complement trees if they are not None.
 
@@ -76,13 +101,13 @@ def insert_node_into_tree(child_tree: Optional[Dict], complement_tree: Optional[
     :return: The modified child and complement trees.
     """
     if child_tree is not None:
-        child_tree = insert_node_into_tree_structure(child_tree, node)
+        child_tree = insert_node_into_tree(child_tree, node)
     if complement_tree is not None:
-        complement_tree = insert_node_into_tree_structure(complement_tree, node)
+        complement_tree = insert_node_into_tree(complement_tree, node)
 
     return child_tree, complement_tree
 
-def insert_node_into_tree_structure(tree: Optional[Dict], node: Optional[Dict]) -> Optional[Dict]:
+def insert_node_into_tree(tree: Optional[Dict], node: Optional[Dict]) -> Optional[Dict]:
     """
     Inserts a node into a tree structure according to the unique identifier and parent-child relationships.
 
@@ -93,13 +118,26 @@ def insert_node_into_tree_structure(tree: Optional[Dict], node: Optional[Dict]) 
     if node is None or tree is None:
         return tree
 
-    if node["unique_identifier"] is not None and tree["unique_identifier"] is not None and node["unique_identifier"] != tree["unique_identifier"]:
+    if node["unique_identifier"] != tree["unique_identifier"]:
         if node["parent"] == tree["unique_identifier"]:
             if tree["child"] is None:
-                insert_node_into_leaf(tree, node)
+                insert_node_immediately_under_here(tree, node)
             else:
-                insert_node_under_complement(tree, node)
+                insert_node_under_this_branch(tree, node)
         else:
-            tree["child"], tree["complement"] = insert_node_into_tree(child_tree=tree["child"], complement_tree=tree["complement"], node=node)
+            tree["child"], tree["complement"] = insert_node_into_either_subtree(child_tree=tree["child"], complement_tree=tree["complement"], node=node)
 
+    return tree
+
+
+def insert_nodes_into_tree(tree: Dict, sorted_list: List[Dict]) -> Dict:
+    """
+    Insert all nodes and add metadata to tree and simplify.
+
+    :param tree: The tree into which nodes are to be inserted.
+    :param sorted_list: The sorted list of nodes to be inserted.
+    :return: The tree with nodes inserted.
+    """
+    for _, new_node in sorted_list:
+        tree = insert_node_into_tree(tree, new_node)
     return tree

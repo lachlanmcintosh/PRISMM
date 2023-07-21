@@ -8,6 +8,7 @@ from prismm.run_simulation.simulate_cancer_genome.simulate_anueploidy_agnostic i
 from prismm.run_simulation.simulate_cancer_genome.simulate_anueploidy_model import simulate_anueploidy
 from prismm.utils.LENGTHS import LENGTHS
 from prismm.utils.get_ev_string import get_ev_string
+from prismm.utils.path_codes import pre_mid_post_to_path_length
 
 def simulate_cancer_genome(p_up: float, p_down: float, pre: int, mid: int, post: int, rate: float, agnostic: bool=False) -> List:
     """
@@ -22,41 +23,46 @@ def simulate_cancer_genome(p_up: float, p_down: float, pre: int, mid: int, post:
     :param agnostic: Indicates if the simulation is agnostic or not.
     :return: Simulated chromosomes.
     """
-    # Count of unique SNVs
+    # Initialize unique SNVs count
     snv_count = 0
 
     # Initialize chromosomes
     simulated_chromosomes = initialize_simulated_chromosomes()
 
-    # Count of unique chromosomes
-    chrom_count = 46  # in a human cell
+    # Initialize unique chromosomes count (46 for a human cell)
+    chrom_count = 46
 
-    # Total epochs count
+    # Get epochs sequence based on pre, mid, and post mutation periods
     ev_sequence = get_ev_string(pre, mid, post)
 
-    if len(ev_sequence) == 0:
+    if not ev_sequence:
         return simulated_chromosomes
 
     for epoch, epoch_type in enumerate(ev_sequence):
         # Simulate SNVs
-        # note that SNVs are created in this epoch, whilst we "time" the copy number changes to be in the next epoch when they are created.
         snv_count, simulated_chromosomes = simulate_snvs(simulated_chromosomes, LENGTHS, rate, epoch, snv_count)
+
+        # Ensure all chromosomes are unique
         check_all_chrs_are_unique(simulated_chromosomes)
 
         if (mid != -1 and epoch == pre) or (post != -1 and epoch == pre + 1 + mid):
-            assert epoch_type == "G"
+            if epoch_type != "G":
+                raise ValueError(f"Expected 'G' at epoch {epoch}, got {epoch_type}")
             chrom_count, simulated_chromosomes = simulate_gd(simulated_chromosomes, epoch+1, chrom_count)
-            check_all_chrs_are_unique(simulated_chromosomes)
         else:
-            assert epoch_type == "A"
+            if epoch_type != "A":
+                raise ValueError(f"Expected 'A' at epoch {epoch}, got {epoch_type}")
             if agnostic:
                 chrom_count, simulated_chromosomes = simulate_anueploidy_agnostic(simulated_chromosomes, epoch+1, chrom_count)
-                check_all_chrs_are_unique(simulated_chromosomes)
             else:
                 chrom_count, simulated_chromosomes = simulate_anueploidy(simulated_chromosomes, epoch+1, chrom_count, p_up, p_down)
-                check_all_chrs_are_unique(simulated_chromosomes)
 
-    assert pre + mid + post + 2 == len(ev_sequence)
+        # Ensure all chromosomes are unique after mutations
+        check_all_chrs_are_unique(simulated_chromosomes)
+
+    if pre_mid_post_to_path_length(pre,mid,post) != len(ev_sequence):
+        raise ValueError("Mismatch between mutation periods and length of epochs sequence")
+
     check_simulated_chromosomes(simulated_chromosomes, pre, mid, post, ev_sequence)
 
     return simulated_chromosomes

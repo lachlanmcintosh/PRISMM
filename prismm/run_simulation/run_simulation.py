@@ -45,6 +45,10 @@ def simulate_genome_and_summarise_observable_variables(args) -> Tuple[Dict, List
     copy_number_trees = extract_copy_number_trees_from_phylogenetic_trees(phylogenetic_trees=phylogenetic_trees) 
 
     observed_copy_numbers, observed_copy_number_multiplicities = count_copy_numbers_and_multiplicities(simulated_chromosomes=simulated_chromosomes)
+
+    for chrom_type in copy_number_trees:
+        assert sorted([copy_number_trees[chrom_type][1][0],copy_number_trees[chrom_type][2][0]]) == sorted(observed_copy_numbers[chrom_type])
+
     return simulated_chromosomes, phylogenetic_trees, copy_number_trees, observed_copy_numbers, observed_copy_number_multiplicities
 
 
@@ -84,18 +88,17 @@ def main(args) -> None:
     4. Save the results to a file.
     """
     
-    print("generating a simulation")
-    set_logging_settings(args)
-    logging.info("Arguments given as input:")
+    logging.info("GENERATING A SIMULATION")
+    logging.info("\n\nArguments given as input:")
     print_args(args)
 
     args = simulate_parameters_not_given_as_arguments(args)
-    logging.info("All arguments given as input or simulated:")
+    logging.info("\n\nAll arguments given as input or simulated:")
     print_args(args)
 
     simulated_chromosomes, phylogenetic_trees, copy_number_trees, observed_copy_numbers, observed_copy_number_multiplicities = simulate_genome_and_summarise_observable_variables(args)
 
-    # TODO: move the observed_copy_numbers and multiplicities to the summed module. Don't need them here.
+    # TODO: move the observed_copy_numbers and multiplicities to the summed module. Don't need them here, they are in the wrong place. We use these values when doing the initial search in the summed module. Actually leave them here. It is a good check to make sure that all chromosomes were properly inserted into the tree. 
 
     print_simulated_genome_data(
         simulated_chromosomes=simulated_chromosomes,
@@ -125,5 +128,6 @@ def main(args) -> None:
 
 if __name__ == "__main__":
     args = parse_arguments()
+    set_logging_settings(args)
     main(args)
 

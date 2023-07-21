@@ -1,9 +1,14 @@
 import logging
+import sys
 
 def set_logging_settings(args):
-    if args.debug == "debug":
-        level = logging.DEBUG
-    elif args.debug == "info":
-        level = logging.INFO
+    logging.basicConfig(stream=sys.stdout)  # initialize basicConfig first
+    logger = logging.getLogger()
     
-    logging.basicConfig(level=level)
+    if args.debug == "debug":
+        logger.setLevel(logging.DEBUG)
+    elif args.debug == "info":
+        logger.setLevel(logging.INFO)
+    else:
+        logger.setLevel(logging.WARNING)
+
