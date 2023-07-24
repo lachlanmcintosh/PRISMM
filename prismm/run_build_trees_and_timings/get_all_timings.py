@@ -69,10 +69,10 @@ def initialize_epochs_created(num_labels, zero_epoch_nodes):
 
     # create a 2D numpy array with the shape (1, num_labels) and fill with the value None.
     epochs_created = np.full((1, num_labels), None)
-    epochs_created[0, 0] = -1
+    epochs_created[0, 0] = 0
 
     for label in zero_epoch_nodes:
-        epochs_created[0, label] = 0
+        epochs_created[0, label] = 1
 
     assert epochs_created.shape[0] == 1
 
@@ -167,9 +167,11 @@ def create_epochs_temp(epochs_created_row: np.ndarray,
 
     # Check if the parent's time is less than or equal to the total estimated epochs and if label_to_copy_number is 1,
     # or if the parent's time is strictly less than the total estimated epochs
-    if (parents_time <= total_epochs_est and copy_number == 1) or parents_time < total_epochs_est:
+    # TODO, change this back
+    #if (parents_time <= total_epochs_est and copy_number == 1) or parents_time < total_epochs_est:
+    if parents_time < total_epochs_est:
         # Determine the start of the sequence based on whether the parent is the root
-        sequence_start = parents_time +1 if copy_number != 1 else parents_time
+        sequence_start = parents_time +1 # TODO, also change this # if copy_number != 1 else parents_time
 
         # Create a temporary array by repeating the current row (total_epochs_est - sequence_start + 1) times
         epochs_created_temp = np.tile(epochs_created_row, (total_epochs_est - sequence_start + 1, 1))
@@ -236,13 +238,16 @@ def handle_other_nodes(epochs_created: np.ndarray,
                                                     total_epochs_est = total_epochs_est,
                                                     copy_number = label_to_copy[label])
         if epochs_created_temp is None:
-            return None
+            continue
+        #    return None
         logging.debug(f'epochs_created_temp:{epochs_created_temp}')
 
         if row == 0:
             new_epochs_created = epochs_created_temp
             logging.debug(f':new_epochs_created{new_epochs_created}')
         else:
+            print("[new_epochs_created,epochs_created_temp]")
+            print([new_epochs_created,epochs_created_temp])
             new_epochs_created = np.vstack([new_epochs_created,epochs_created_temp])
 
     return new_epochs_created
@@ -252,9 +257,14 @@ def get_timings_per_tree(tree, total_epochs_est):
     logging.debug("get_timings_per_tree")
 
     labelled_tree, label_count, parents, label_to_copy = label_tree(tree)
+    print(tree)
+    print("(labelled_tree, label_count, parents, label_to_copy)")
+    print((labelled_tree, label_count, parents, label_to_copy))
     zero_epoch_nodes = [key for key, value in parents.items() if value == 0] 
-
+    print(zero_epoch_nodes)
     epochs_created = initialize_epochs_created(num_labels=label_count + 1, zero_epoch_nodes = zero_epoch_nodes) # plus one because counting starts at 0.
+    print("epochs_created")
+    print(epochs_created)
     if label_count == 2:
         return epochs_created
 
@@ -263,8 +273,8 @@ def get_timings_per_tree(tree, total_epochs_est):
             continue
 
         sibling = find_sibling(parents,label)
-        print(sibling)
-        print(label)
+        print("(sibling,label)")
+        print((sibling,label))
         if sibling < label:
             logging.debug("insertion by copying sibling")
             epochs_created[:,label] = epochs_created[:,sibling]
@@ -276,6 +286,10 @@ def get_timings_per_tree(tree, total_epochs_est):
                                                 parent=parents[label],
                                                 total_epochs_est=total_epochs_est
                                                 )
+        print("label")
+        print(label)
+        print("epochs_created")
+        print(epochs_created)
         logging.debug("epochs_created")
         logging.debug(epochs_created)
         if epochs_created is None or np.any(epochs_created[:,label] == None):

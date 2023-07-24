@@ -2,7 +2,7 @@ from prismm.run_build_trees_and_timings.get_all_timings import label_tree, get_t
 import numpy as np
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 
 def test_label_tree():
     # Test case 1
@@ -26,68 +26,36 @@ def test_label_tree():
         )
     
 def test_get_timings_per_tree():
-    test_cases = [
-        {
-            'input': {'tree': (6, (4, (2, (1,), (1,)), (2, (1,), (1,))), (2, (1,), (1,))), 'total_epochs_est': 1},
-            'output': ((6, (4, (2, (1,), (1,)), (2, (1,), (1,))), (2, (1,), (1,))), [0, [1, [2, [3], [4]], [5, [6], [7]]], [8, [9], [10]]], 10, np.array([[-1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0],
-       [-1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1],
-       [-1, 0, 1, 1, 1, 1, 1, 1, 0, 2, 2],
-       [-1, 0, 1, 1, 1, 1, 2, 2, 0, 0, 0],
-       [-1, 0, 1, 1, 1, 1, 2, 2, 0, 1, 1],
-       [-1, 0, 1, 1, 1, 1, 2, 2, 0, 2, 2],
-       [-1, 0, 1, 2, 2, 1, 1, 1, 0, 0, 0],
-       [-1, 0, 1, 2, 2, 1, 1, 1, 0, 1, 1],
-       [-1, 0, 1, 2, 2, 1, 1, 1, 0, 2, 2],
-       [-1, 0, 1, 2, 2, 1, 2, 2, 0, 0, 0],
-       [-1, 0, 1, 2, 2, 1, 2, 2, 0, 1, 1],
-       [-1, 0, 1, 2, 2, 1, 2, 2, 0, 2, 2],
-       [-1, 0, 2, 2, 2, 2, 2, 2, 0, 0, 0],
-       [-1, 0, 2, 2, 2, 2, 2, 2, 0, 1, 1],
-       [-1, 0, 2, 2, 2, 2, 2, 2, 0, 2, 2],
-       [-1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 1],
-       [-1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2]], dtype=object), {3: 2, 4: 2, 2: 1, 6: 5, 7: 5, 5: 1, 1: 0, 9: 8, 10: 8, 8: 0})
-        },
-        {
-            'input': {'tree': (3, (3, (2, (1,), (1,)), (1,)), (0,)), 'total_epochs_est': 2},
-            'output': ((3, (3, (2, (1,), (1,)), (1,)), (0,)), [0, [1, [2, [3], [4]], [5]], [6]], 6, np.array([[-1, 0, 1, 1, 1, 1, 0],
-       [-1, 0, 1, 2, 2, 1, 0],
-       [-1, 0, 2, 2, 2, 2, 0],
-       [-1, 1, 2, 2, 2, 2, 1]], dtype=object), {3: 2, 4: 2, 2: 1, 5: 1, 1: 0, 6: 0})
-        },
-        {
-            'input': {'tree': (5, (3, (2, (1,), (1,)), (1,)), (2, (1,), (1,))), 'total_epochs_est': 2},
-            'output': ((5, (3, (2, (1,), (1,)), (1,)), (2, (1,), (1,))), [0, [1, [2, [3], [4]], [5]], [6, [7], [8]]], 8, np.array([[-1, 0, 1, 1, 1, 1, 0, 0, 0],
-       [-1, 0, 1, 1, 1, 1, 0, 1, 1],
-       [-1, 0, 1, 1, 1, 1, 0, 2, 2],
-       [-1, 0, 1, 2, 2, 1, 0, 0, 0],
-       [-1, 0, 1, 2, 2, 1, 0, 1, 1],
-       [-1, 0, 1, 2, 2, 1, 0, 2, 2],
-       [-1, 0, 2, 2, 2, 2, 0, 0, 0],
-       [-1, 0, 2, 2, 2, 2, 0, 1, 1],
-       [-1, 0, 2, 2, 2, 2, 0, 2, 2],
-       [-1, 1, 2, 2, 2, 2, 1, 1, 1],
-       [-1, 1, 2, 2, 2, 2, 1, 2, 2]], dtype=object), {3: 2, 4: 2, 2: 1, 5: 1, 1: 0, 7: 6, 8: 6, 6: 0})
-        },
-        {
-            'input': {'tree': (3, (3, (2, (1,), (1,)), (1,)), (0,)), 'total_epochs_est': 2},
-            'output': ((3, (3, (2, (1,), (1,)), (1,)), (0,)), [0, [1, [2, [3], [4]], [5]], [6]], 6, np.array([[-1, 0, 1, 1, 1, 1, 0],
-       [-1, 0, 1, 2, 2, 1, 0],
-       [-1, 0, 2, 2, 2, 2, 0],
-       [-1, 1, 2, 2, 2, 2, 1]], dtype=object), {3: 2, 4: 2, 2: 1, 5: 1, 1: 0, 6: 0})
-        }
-    ]
+    # Define the input
+    tree = (6, (4, (2, (1,), (1,)), (2, (1,), (1,))), (2, (1,), (1,)))
+    
+    # Define the expected results
+    expected_tree = (6, (4, (2, (1,), (1,)), (2, (1,), (1,))), (2, (1,), (1,)))
+    expected_labelled_tree = [0, [1, [2, [3], [4]], [5, [6], [7]]], [8, [9], [10]]]
+    expected_label_count = 10
+    expected_epochs_created = np.array([[0, 1, 2, 3, 3, 2, 3, 3, 1, 2, 2], [0, 1, 2, 3, 3, 2, 3, 3, 1, 3, 3]], dtype=object)
+    expected_parents = {3: 2, 4: 2, 2: 1, 6: 5, 7: 5, 5: 1, 1: 0, 9: 8, 10: 8, 8: 0}
 
-    for test_case in test_cases:
-        input_data = test_case['input']
-        expected_output = test_case['output']
-        result = get_timings_per_tree(**input_data)
-        print("RESULT")
-        np.set_printoptions(threshold=np.inf)  # print the entire array without truncation
+    # Call the function and get the result
+    result = get_timings_per_tree(tree=tree, total_epochs_est=3)
+    result_tree, result_labelled_tree, result_label_count, result_epochs_created, result_parents = result
 
-        print(result)
-        print("RESULT")
+    # Compare each element of the result with the expected result
+    assert result_tree == expected_tree, f'For tree, expected {expected_tree} but got {result_tree}'
+    assert result_labelled_tree == expected_labelled_tree, f'For labelled_tree, expected {expected_labelled_tree} but got {result_labelled_tree}'
+    assert result_label_count == expected_label_count, f'For label_count, expected {expected_label_count} but got {result_label_count}'
+    assert np.array_equal(result_epochs_created, expected_epochs_created), f'For epochs_created, expected {expected_epochs_created} but got {result_epochs_created}'
+    assert result_parents == expected_parents, f'For parents, expected {expected_parents} but got {result_parents}'
 
-        assert result == expected_output, f'For {input_data}, expected {expected_output} but got {result}'
+    # Repeat the process for the second test case
+    result = get_timings_per_tree(tree=tree, total_epochs_est=4)
+    result_tree, result_labelled_tree, result_label_count, result_epochs_created, result_parents = result
+
+    assert result_tree == expected_tree, f'For tree, expected {expected_tree} but got {result_tree}'
+    assert result_labelled_tree == expected_labelled_tree, f'For labelled_tree, expected {expected_labelled_tree} but got {result_labelled_tree}'
+    assert result_label_count == expected_label_count, f'For label_count, expected {expected_label_count} but got {result_label_count}'
+    assert np.array_equal(result_epochs_created, expected_epochs_created), f'For epochs_created, expected {expected_epochs_created} but got {result_epochs_created}'
+    assert result_parents == expected_parents, f'For parents, expected {expected_parents} but got {result_parents}'
 
 
 if __name__ == "__main__":
