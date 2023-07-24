@@ -70,24 +70,39 @@ def compare_relative_timing(SS: Dict, solution: Dict, operator: str, is_root: bo
     count_true = 0
     count_false = 0
     count_missing = 0
+    print("simp_trees")
+    print(SS["simplified_phylogenetic_trees"])
+    print("\n\nsolution\n\n")
+    print(solution)
+    for chromosome in SS["simplified_phylogenetic_trees"]:
+        print(chromosome)
+        print(solution)
+        print(solution[chromosome])
 
-    for chromosome in SS["simplified_truth_trees"]:
         truth_epochs = []
         solution_epochs = []
+        print(f"Before calling extract_timing_values: solution[{chromosome}]['dict_tree'] = {solution[chromosome]['dict_tree']}")
+        extract_timing_values(SS["simplified_phylogenetic_trees"][chromosome], truth_epochs, is_root)
+        print(f"After calling extract_timing_values: solution[{chromosome}]['dict_tree'] = {solution[chromosome]['dict_tree']}")
+        print(f"After calling extract_timing_values: SS['simplified_phylogenetic_trees'][{chromosome}] = {SS['simplified_phylogenetic_trees'][chromosome]}")
+        print(is_root)
+        print(solution_epochs)
+        if isinstance(solution[chromosome], dict):
+            extract_timing_values(solution[chromosome]["dict_tree"], solution_epochs, is_root)
+        else:
+            print(f"Expected a dict, but got {type(solution[chromosome])}")
 
-        extract_timing_values(SS["simplified_truth_trees"][chromosome], truth_epochs, is_root)
-        extract_timing_values(solution[chromosome]["dict_tree"], solution_epochs, is_root)
 
         truth_epochs, solution_epochs = align_timing_values(truth_epochs, solution_epochs)
 
         for i, _ in enumerate(truth_epochs):
             for j in range(i + 1, len(truth_epochs)):
                 truth = truth_epochs[i] < truth_epochs[j] if operator == "<" else truth_epochs[i] <= truth_epochs[j]
-                solution = solution_epochs[i] < solution_epochs[j] if operator == "<" else solution_epochs[i] <= solution_epochs[j]
+                solution_exists = solution_epochs[i] < solution_epochs[j] if operator == "<" else solution_epochs[i] <= solution_epochs[j]
 
-                if truth and solution:
+                if truth and solution_exists:
                     count_true += 1
-                elif truth and not solution:
+                elif truth and not solution_exists:
                     count_false += 1
 
                 if solution_epochs[i] is None or solution_epochs[j] is None:

@@ -253,7 +253,7 @@ def compute_solution_similarity(
                     # Compute similarity
                     similarity = compute_similarity(
                         solution[chrom]["dict_tree"],
-                        solutions["simplified_truth_trees"][chrom],
+                        solutions["simplified_phylogenetic_trees"][chrom],
                         copy_number_distance,
                         epoch_created_distance,
                         normalising_constant

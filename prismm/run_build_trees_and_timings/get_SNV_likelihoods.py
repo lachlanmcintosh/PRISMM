@@ -3,6 +3,7 @@ import scipy.special
 import sys
 import logging
 from prismm.utils.LENGTHS import LENGTHS
+import copy
 
 def get_poisson_loglikelihood(counts, stacked_branch_lengths, plambda, chrom, lengths, unique_CNs):
 
@@ -161,7 +162,7 @@ def find_best_SNV_likelihood(plambda, these_structures, observed_SNV_multiplicit
                 best[chrom] = (max_SNV_loglik, tree_index, best_timings_row_index)
 
     total = sum([best[chrom][0] for chrom in chroms])
-    return total, best
+    return total, copy.deepcopy(best)
 
 
 def test_find_best_SNV_likelihood():

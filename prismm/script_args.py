@@ -31,7 +31,6 @@ def add_base_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     )
     parser.add_argument(
         '--lam',
-        nargs='+',
         type=float,
         default=2.0,
         help="Lam parameter for Poisson distribution for randomly sampling the mean number of events per anueploidy period (optional, default is 2)."

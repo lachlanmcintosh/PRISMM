@@ -132,6 +132,8 @@ def main():
         [5, 2, 1]
     ]
 
+    base_alphas = [[1, 1, 1]]  # TODO REMOVE
+
     # Multipliers
     multipliers = [1, 10, 100]
 
@@ -140,6 +142,8 @@ def main():
 
 
     lams: List[float] = [1, 2, 4]
+
+    lams: List[float] = [1]
 
 
     # Iterate over all alpha values

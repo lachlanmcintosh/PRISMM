@@ -23,19 +23,19 @@ def analyze_sorted_results(SS):
             solution[chrom]["total_nodes"] = count_nodes(solution[chrom]["dict_tree"])
             total_solution_nodes += solution[chrom]["total_nodes"]
 
-            SS["total_nodes"][chrom] = count_nodes(SS["simplified_truth_trees"][chrom])
+            SS["total_nodes"][chrom] = count_nodes(SS["simplified_phylogenetic_trees"][chrom])
             total_truth_nodes += SS["total_nodes"][chrom]
 
             # count the number with the correct CN:
-            solution[chrom]["correct_CN"] = analyze_tree_copy_number(SS["simplified_truth_trees"][chrom], solution[chrom]["dict_tree"])
+            solution[chrom]["correct_CN"] = analyze_tree_copy_number(SS["simplified_phylogenetic_trees"][chrom], solution[chrom]["dict_tree"])
             num_chrom_with_correct_CN += solution[chrom]["correct_CN"]
 
             # count the number with the correct CN and epoch created:
-            solution[chrom]["correct_CN_and_epoch_created"] = analyze_tree_properties(SS["simplified_truth_trees"][chrom], solution[chrom]["dict_tree"])
+            solution[chrom]["correct_CN_and_epoch_created"] = analyze_tree_properties(SS["simplified_phylogenetic_trees"][chrom], solution[chrom]["dict_tree"])
             num_chrom_with_correct_CN_and_epoch_created += solution[chrom]["correct_CN_and_epoch_created"]
 
             # find the average epoch distance for tree of correct CN (incorrect CN trees get infinite distance)
-            solution[chrom]["error_in_epoch_created_estimate"] = calculate_tree_distance(SS["simplified_truth_trees"][chrom], solution[chrom]["dict_tree"], total_nodes)
+            solution[chrom]["error_in_epoch_created_estimate"] = calculate_tree_distance(SS["simplified_phylogenetic_trees"][chrom], solution[chrom]["dict_tree"], total_nodes)
             average_distance_from_truth_of_epoch_created += solution[chrom]["error_in_epoch_created_estimate"]
 
 
@@ -55,34 +55,34 @@ def analyze_sorted_results(SS):
 def get_all_trees_ready_for_comparison(SS):
     #print("get trees ready for comparison")
 
-    get_truth_trees_ready_for_comparison(SS)
+    get_phylogenetic_trees_ready_for_comparison(SS)
     #print("truth trees are ready")
 
     get_estimated_trees_ready_for_comparison(SS)
     #print("estimated trees are ready")
 
 
-def get_truth_trees_ready_for_comparison(SS):
+def get_phylogenetic_trees_ready_for_comparison(SS):
     #pretty_print("simplified simulated tree")
 
-    if "simplified_truth_trees" not in SS:
-        SS["simplified_truth_trees"] = {}
+    if "simplified_phylogenetic_trees" not in SS:
+        SS["simplified_phylogenetic_trees"] = {}
 
-    assert(sorted(list(SS["truth_trees"].keys())) == list(range(23))) # assert it has all the keys available
+    assert(sorted(list(SS["phylogenetic_trees"].keys())) == list(range(23))) # assert it has all the keys available
 
-    for chrom in SS["truth_trees"]:
+    for chrom in SS["phylogenetic_trees"]:
         #print("Current chromosome: ", chrom)
-        SS["simplified_truth_trees"][chrom] = filter_tree(SS["truth_trees"][chrom],keys_to_keep = ["copy_number","epoch_created"])
-        #print("Newly added tree to simplified_truth_trees: ", SS["simplified_truth_trees"][chrom])
+        SS["simplified_phylogenetic_trees"][chrom] = filter_tree(SS["phylogenetic_trees"][chrom],keys_to_keep = ["copy_number","epoch_created"])
+        #print("Newly added tree to simplified_phylogenetic_trees: ", SS["simplified_phylogenetic_trees"][chrom])
 
-        SS["simplified_truth_trees"][chrom] = create_epoch_index(SS["simplified_truth_trees"][chrom], key_from="epoch_created", key_to="epoch_index")
-        #print("Trees after adding epoch index: ",  SS["simplified_truth_trees"][chrom])
+        SS["simplified_phylogenetic_trees"][chrom] = create_epoch_index(SS["simplified_phylogenetic_trees"][chrom], key_from="epoch_created", key_to="epoch_index")
+        #print("Trees after adding epoch index: ",  SS["simplified_phylogenetic_trees"][chrom])
 
-        SS["simplified_truth_trees"][chrom] = order_tree_keys_alphabetically(SS["simplified_truth_trees"][chrom])
-        #print("Tree after ordering keys alphabetically: ", SS["simplified_truth_trees"][chrom])
+        SS["simplified_phylogenetic_trees"][chrom] = order_tree_keys_alphabetically(SS["simplified_phylogenetic_trees"][chrom])
+        #print("Tree after ordering keys alphabetically: ", SS["simplified_phylogenetic_trees"][chrom])
 
-        SS["simplified_truth_trees"][chrom] = sort_tree_by_copynumber(SS["simplified_truth_trees"][chrom])
-        #print("Tree after ordering keys by copynumber: ", SS["simplified_truth_trees"][chrom])
+        SS["simplified_phylogenetic_trees"][chrom] = sort_tree_by_copynumber(SS["simplified_phylogenetic_trees"][chrom])
+        #print("Tree after ordering keys by copynumber: ", SS["simplified_phylogenetic_trees"][chrom])
         #print("\n"*5)
 
 

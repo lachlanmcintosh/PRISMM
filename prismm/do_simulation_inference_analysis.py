@@ -1,5 +1,5 @@
 import argparse
-import prismm.script_args as script_args
+from prismm.script_args import add_analyse_trees_args, add_base_args, add_build_trees_args, add_simulation_args, bp_search_args
 from prismm.utils.set_logging_settings import set_logging_settings
 
 def parse_arguments():
@@ -16,11 +16,11 @@ def parse_arguments():
     )
 
     # use the functions from script_args to add the arguments
-    script_args.add_base_args(parser)
-    script_args.add_simulation_args(parser)
-    script_args.bp_search_args(parser)
-    script_args.add_build_trees_args(parser)
-    script_args.add_analyse_trees_args(parser)
+    add_base_args(parser)
+    add_simulation_args(parser)
+    bp_search_args(parser)
+    add_build_trees_args(parser)
+    add_analyse_trees_args(parser)
 
     return parser.parse_args()
 

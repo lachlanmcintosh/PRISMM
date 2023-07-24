@@ -73,7 +73,7 @@ def save_results_to_file(test_case: str, simulation_filename: str, simulated_chr
             'post': post,
             'p_up': p_up,
             'p_down': p_down,
-            'SNV_rate': rate
+            'rate': rate
         }, f)
     logging.info(f"Results saved to file {file_name}")
 
@@ -107,6 +107,9 @@ def main(args) -> None:
         observed_copy_numbers=observed_copy_numbers,
         observed_copy_number_multiplicities=observed_copy_number_multiplicities
     )
+    
+    logging.info("\n\nAll arguments given as input or simulated:")
+    print_args(args)
 
     # Save the results
     save_results_to_file(

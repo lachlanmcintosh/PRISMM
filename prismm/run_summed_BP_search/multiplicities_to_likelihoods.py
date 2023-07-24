@@ -4,19 +4,19 @@ import re
 from typing import Dict
 from utils.FILES import PRECOMPUTED_FILE_FOLDER
 
-def calculate_likelihoods(all_data, observed_CN_multiplicities):
-    observed_CN_multiplicities_str = {
-        str(key): value for key, value in observed_CN_multiplicities.items()
+def calculate_likelihoods(all_data, observed_copy_number_multiplicities):
+    observed_copy_number_multiplicities_str = {
+        str(key): value for key, value in observed_copy_number_multiplicities.items()
     }
     lls = np.sum(
-        [all_data[copy] * multiplicity for copy, multiplicity in observed_CN_multiplicities_str.items()],
+        [all_data[copy] * multiplicity for copy, multiplicity in observed_copy_number_multiplicities_str.items()],
         axis=0
     )
     
     assert np.shape(lls) == np.shape(all_data["0"])
     likelihoods = np.exp(lls)
-    if "0" in observed_CN_multiplicities:
-        likelihoods = likelihoods / (1 - np.exp(all_data["0"]))**observed_CN_multiplicities["0"]
+    if "0" in observed_copy_number_multiplicities:
+        likelihoods = likelihoods / (1 - np.exp(all_data["0"]))**observed_copy_number_multiplicities["0"]
     return likelihoods
 
 
@@ -28,7 +28,7 @@ def test_calculate_likelihoods():
         "2": np.array([1.0, 1.0, 1.0]),
         "3": np.array([1.5, 1.5, 1.5])
     }
-    observed_CN_multiplicities = {
+    observed_copy_number_multiplicities = {
         0: 2,
         1: 1,
         2: 3
@@ -36,7 +36,7 @@ def test_calculate_likelihoods():
     
     expected_likelihoods = np.array([0.01831564, 0.01831564, 0.01831564])
     
-    result = calculate_likelihoods(all_data, observed_CN_multiplicities)
+    result = calculate_likelihoods(all_data, observed_copy_number_multiplicities)
     assert np.allclose(result, expected_likelihoods), f"Expected {expected_likelihoods}, but got {result}"
 
     # Test Case 2
@@ -46,14 +46,14 @@ def test_calculate_likelihoods():
         "2": np.array([0.7, 0.8, 0.9]),
         "3": np.array([1.0, 1.1, 1.2])
     }
-    observed_CN_multiplicities = {
+    observed_copy_number_multiplicities = {
         1: 2,
         2: 1
     }
     
     expected_likelihoods = np.array([1.778271, 2.178106, 2.576879])
     
-    result = calculate_likelihoods(all_data, observed_CN_multiplicities)
+    result = calculate_likelihoods(all_data, observed_copy_number_multiplicities)
     assert np.allclose(result, expected_likelihoods, rtol=1e-5), f"Expected {expected_likelihoods}, but got {result}"
 
     # Test Case 3
@@ -63,7 +63,7 @@ def test_calculate_likelihoods():
         "2": np.array([0.8, 0.9, 1.0]),
         "3": np.array([1.1, 1.2, 1.3])
     }
-    observed_CN_multiplicities = {
+    observed_copy_number_multiplicities = {
         0: 1,
         1: 1,
         2: 1,
@@ -72,7 +72,7 @@ def test_calculate_likelihoods():
     
     expected_likelihoods = np.array([1.513225, 1.878165, 2.218444])
     
-    result = calculate_likelihoods(all_data, observed_CN_multiplicities)
+    result = calculate_likelihoods(all_data, observed_copy_number_multiplicities)
     assert np.allclose(result, expected_likelihoods, rtol=1e-5), f"Expected {expected_likelihoods}, but got {result}"
 
 
@@ -83,11 +83,11 @@ def read_pickle_with_custom_columns(file_name):
     all_data = pd.read_pickle(file_name)
     return all_data
 
-def CN_multiplicities_to_likelihoods(observed_CN_multiplicities: Dict[int, int]):
+def CN_multiplicities_to_likelihoods(observed_copy_number_multiplicities: Dict[int, int]):
     file_name = PRECOMPUTED_FILE_FOLDER + "collated_p8_v4_logged.pkl"
     p_value = int(re.findall(r"_p(\d+)_", file_name)[0])
     all_data = read_pickle_with_custom_columns(file_name)
-    likelihoods = calculate_likelihoods(all_data, observed_CN_multiplicities)
+    likelihoods = calculate_likelihoods(all_data, observed_copy_number_multiplicities)
     named_likelihoods = all_data[["p_up", "p_down", "path"]].copy()
     named_likelihoods.insert(3, "likelihood", likelihoods, True)
     named_likelihoods.replace([np.inf, -np.inf], np.nan, inplace=True)
@@ -110,7 +110,7 @@ def test_CN_multiplicities_to_likelihoods():
             "path": ["path1", "path2", "path3"],
         })
 
-    observed_CN_multiplicities = {
+    observed_copy_number_multiplicities = {
         0: 2,
         1: 1,
         2: 3
@@ -123,9 +123,9 @@ def test_CN_multiplicities_to_likelihoods():
         "likelihood": [0.31830989, 0.31830989, 0.36338023]
     })
 
-    result = CN_multiplicities_to_likelihoods(observed_CN_multiplicities)
+    result = CN_multiplicities_to_likelihoods(observed_copy_number_multiplicities)
     pd.testing.assert_frame_equal(result, expected_named_likelihoods, check_exact=False, rtol=1e-5)
 
-    # Additional test cases can be added here with different observed_CN_multiplicities values and read_pickle_with_custom_columns function
+    # Additional test cases can be added here with different observed_copy_number_multiplicities values and read_pickle_with_custom_columns function
 
 #test_CN_multiplicities_to_likelihoods()

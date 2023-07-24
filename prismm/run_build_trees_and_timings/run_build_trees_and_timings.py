@@ -27,7 +27,7 @@ def sum_SNV_counts(observed_SNV_multiplicities):
 def sum_chrom_multiplicities(observed_CN_multiplicities):
     return sum(observed_CN_multiplicities.values())
 
-def sum_observed_CNs(dictionary):
+def sum_observed_copy_numbers(dictionary):
     total_sum = 0
     for value_list in dictionary.values():
         total_sum += sum(value_list)
@@ -61,10 +61,10 @@ def initial_rate_estimate(pre, mid, post, SS):
     logging.info("observed_SNV_multiplicities")
     logging.info(SS["observed_SNV_multiplicities"])
 
-    logging.info("observed_CNs")
-    logging.info(SS["observed_CNs"])
+    logging.info("observed_copy_numbers")
+    logging.info(SS["observed_copy_numbers"])
 
-    total_chromosomes = sum_observed_CNs(SS["observed_CNs"])
+    total_chromosomes = sum_observed_copy_numbers(SS["observed_copy_numbers"])
     plambda_start = float(total_SNVs) / float(total_SNV_time) / float(total_chromosomes) * 23
     logging.info("plambda_start: " + str(plambda_start))
 
@@ -225,29 +225,23 @@ def find_solutions(SS, p_window, plambda_window, tree_flexibility, alpha):
     for res in range(SEARCH_DEPTH + 1):
         start_time_res = time.time()
         print("RES", res)
-        path, p_up_start, p_down_start, pre, mid, post = get_tree_and_rate_parameters(res, SEARCH_DEPTH, SS)
-        print_results(res, path, p_up_start, p_down_start, pre, mid, post)
+        path_est, p_up_start, p_down_start, pre_est, mid_est, post_est = get_tree_and_rate_parameters(res, SEARCH_DEPTH, SS)
+        print_results(res, path_est, p_up_start, p_down_start, pre_est, mid_est, post_est)
 
-        total_epochs = pre_mid_post_to_path_length(pre, mid, post)
-        assert total_epochs == pre + mid + post + 2
-        max_epoch = total_epochs
+        total_epochs_est = pre_mid_post_to_path_length(pre_est, mid_est, post_est)
 
         start_time_trees_and_timings = time.time()
         trees = get_all_trees(
             observed_SNV_multiplicities=SS["observed_SNV_multiplicities"],
-            observed_CNs=SS["observed_CNs"],
-            total_epochs=total_epochs,
+            observed_copy_numbers=SS["observed_copy_numbers"],
+            total_epochs_est=total_epochs_est,
             tree_flexibility=tree_flexibility
         )
 
         if trees is not None:
             trees_and_timings = get_all_timings(
                 trees=trees,
-                observed_SNV_multiplicities=SS["observed_SNV_multiplicities"],
-                total_epochs=total_epochs,
-                pre=pre,
-                mid=mid,
-                post=post
+                total_epochs_est=total_epochs_est
             )
         else:
             trees_and_timings = None
@@ -262,16 +256,16 @@ def find_solutions(SS, p_window, plambda_window, tree_flexibility, alpha):
         start_time_all_structures = time.time()
         all_structures = timing_struct_to_all_structures(
             trees_and_timings=trees_and_timings,
-            pre=pre,
-            mid=mid,
-            post=post,
-            max_epoch=max_epoch
+            pre_est=pre_est,
+            mid_est=mid_est,
+            post_est=post_est,
+            total_epochs_est=total_epochs_est
         )
         end_time_all_structures = time.time()
 
         aggregated_execution_times["timing_struct_to_all_structures"] += round(end_time_all_structures - start_time_all_structures, 2)
 
-        plambda_start, total_SNVs = initial_rate_estimate(pre, mid, post, SS)
+        plambda_start, total_SNVs = initial_rate_estimate(pre_est, mid_est, post_est, SS)
 
         start_time_BP_SNV_loglik = time.time()
         BP_SNV_loglik = find_BP_and_SNV_loglik(
@@ -287,6 +281,7 @@ def find_solutions(SS, p_window, plambda_window, tree_flexibility, alpha):
         )
         end_time_BP_SNV_loglik = time.time()
 
+
         aggregated_execution_times["find_BP_and_SNV_loglik"] += round(end_time_BP_SNV_loglik - start_time_BP_SNV_loglik, 2)
 
         if BP_SNV_loglik is not None:
@@ -297,10 +292,16 @@ def find_solutions(SS, p_window, plambda_window, tree_flexibility, alpha):
             log_likelihood = calculate_log_likelihood(alpha, probabilities)
 
             result_dict = copy.deepcopy(best_structure)
-            result_dict["est_neg_loglik"] = best_neg_loglik-log_likelihood
-            result_dict["est_p_up"] = best_p_up
-            result_dict["est_p_down"] = best_p_down
-            result_dict["est_plambda"] = best_plambda
+            result_dict["neg_loglik_est"] = best_neg_loglik-log_likelihood
+            result_dict["p_up_est"] = best_p_up
+            result_dict["p_down_est"] = best_p_down
+            result_dict["plambda_est"] = best_plambda
+            # TODO: CHANGE THIS TO RATE OR SOMETHING LESS CONFUSING
+            result_dict["correct_path"] = res == SEARCH_DEPTH
+            result_dict["pre_est"] = pre_est
+            result_dict["mid_est"] = mid_est
+            result_dict["post_est"] = post_est
+            
         else:
             result_dict = None
 
@@ -311,8 +312,9 @@ def find_solutions(SS, p_window, plambda_window, tree_flexibility, alpha):
             if impossible:
                 continue
 
-        result_dict["execution_times"] = aggregated_execution_times
-        results.append(result_dict)
+        result_dict["execution_times"] = copy.deepcopy(aggregated_execution_times)
+        results.append(copy.deepcopy(result_dict))
+
 
     return results
 
@@ -342,7 +344,7 @@ def main(args):
     SS["solutions"] = find_solutions(SS=SS, p_window=args.p_window, plambda_window=args.plambda_window, tree_flexibility=args.tree_flexibility, alpha=args.alpha)
 
     # Sort the dictionary based on 'best_neg_loglik' in descending order
-    sorted_solutions = sorted(SS['solutions'], key=lambda x: x['est_neg_loglik'], reverse=True)
+    sorted_solutions = sorted(SS['solutions'], key=lambda x: x['neg_loglik_est'], reverse=True)
 
     print(f"the truth is:")
     print(
@@ -355,13 +357,14 @@ def main(args):
     )
     for solution in sorted_solutions:
         print(
-            f"best_neg_loglik: {solution['est_neg_loglik']}, "
-            f"best_p_up: {solution['est_p_up']}, "
-            f"best_p_down: {solution['est_p_down']}, "
-            f"best_plambda: {solution['est_plambda']}, "
-            f"pre: {solution[0]['pre']}, "
-            f"mid: {solution[0]['mid']}, "
-            f"post: {solution[0]['post']}, \n"
+            f"best_neg_loglik: {solution['neg_loglik_est']}, "
+            f"best_p_up: {solution['p_up_est']}, "
+            f"best_p_down: {solution['p_down_est']}, "
+            f"best_plambda: {solution['plambda_est']}, "
+            f"best_pre: {solution[0]['pre_est']}, "
+            f"best_mid: {solution[0]['mid_est']}, "
+            f"best_post: {solution[0]['post_est']}, "
+            f"correct_path: {solution['correct_path']}, \n"
             f"total_time: {solution['execution_times']['total_time']}, "
             f"time_get_all_trees_and_timings: {solution['execution_times']['get_all_trees_and_timings']}, "
             f"time_timing_struct_to_all_structures: {solution['execution_times']['timing_struct_to_all_structures']}, "
@@ -369,8 +372,8 @@ def main(args):
         )
 
    
-    for chrom in SS["CN_trees"]:
-        print(chrom, SS["CN_trees"][chrom])
+    for chrom in SS["copy_number_trees"]:
+        print(chrom, SS["copy_number_trees"][chrom])
     print(SS.keys())
 
     # Save some solutions to file here

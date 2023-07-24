@@ -67,8 +67,8 @@ def print_solution_results(SS):
             print(solution[chrom]["dict_tree"])
             print_tree(solution[chrom]["dict_tree"])
             print("\n\tTruth Tree for Chromosome", chrom)
-            print(SS["simplified_truth_trees"][chrom])
-            print_tree(SS["simplified_truth_trees"][chrom])
+            print(SS["simplified_phylogenetic_trees"][chrom])
+            print_tree(SS["simplified_phylogenetic_trees"][chrom])
 
 
 

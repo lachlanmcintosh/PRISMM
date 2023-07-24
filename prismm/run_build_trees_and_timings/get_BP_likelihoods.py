@@ -284,18 +284,21 @@ def get_path_code(code_list):
 # Configure logging settings (you only need to do this once in your script or module)
 # this would be a good idea to use throughout the script
 
-def timing_struct_to_all_structures(trees_and_timings, pre, mid, post, max_epoch):
+def timing_struct_to_all_structures(trees_and_timings, pre_est, mid_est, post_est, total_epochs_est):
     all_structures = {}
     
     for chrom in trees_and_timings:
-        all_structures[chrom] = timing_structs_to_all_structs_per_chrom(trees_and_timings[chrom], pre, mid, post, max_epoch)
-
-    
+        all_structures[chrom] = timing_structs_to_all_structs_per_chrom(trees_and_timings = trees_and_timings[chrom], 
+                                                                        pre_est = pre_est, 
+                                                                        mid_est = mid_est, 
+                                                                        post_est = post_est, 
+                                                                        total_epochs_est = total_epochs_est
+                                                                        )
 
     return all_structures
 
 
-def timing_structs_to_all_structs_per_chrom(trees_and_timings, pre, mid, post, max_epoch):
+def timing_structs_to_all_structs_per_chrom(trees_and_timings, pre_est, mid_est, post_est, total_epochs_est):
     logging.debug("trees_and_timings")
     logging.debug(trees_and_timings)
     all_structures = [] 
@@ -305,15 +308,15 @@ def timing_structs_to_all_structs_per_chrom(trees_and_timings, pre, mid, post, m
             #BP_likelihoods = -1
         else:
             # trace back to here, asdfasdf
-            CNs, unique_CNs, branch_lengths, stacked_branch_lengths = get_branch_lengths(trees_and_timings=these_tts, max_epoch=max_epoch)
+            CNs, unique_CNs, branch_lengths, stacked_branch_lengths = get_branch_lengths(trees_and_timings=these_tts, max_epoch=total_epochs_est)
 
             logging.debug("CNs, unique_CNs, branch_lengths, stacked_branch_lengths")
             logging.debug(f"{CNs}, {unique_CNs}, {branch_lengths}, {stacked_branch_lengths}")
             logging.debug("starts and ends")
 
-            path = create_path(pre, mid, post)
+            path_est = create_path(pre_est, mid_est, post_est)
 
-            logging.debug(path)
+            logging.debug(path_est)
 
             starts = these_tts[3] #+1
             ends = these_tts[3] + branch_lengths #+1
@@ -323,15 +326,15 @@ def timing_structs_to_all_structs_per_chrom(trees_and_timings, pre, mid, post, m
             logging.debug("ends")
             logging.debug(ends)
 
-            paths = calculate_BP_paths(branch_lengths, starts, ends, path)
+            paths = calculate_BP_paths(branch_lengths, starts, ends, path_est)
 
         tree, labelled_tree, count, epochs_created, parents = these_tts
 
         all_structures += [{
-            "pre": pre,
-            "mid": mid,
-            "post": post,
-            "path": path,
+            "pre_est": pre_est,
+            "mid_est": mid_est,
+            "post_est": post_est,
+            "path_est": path_est,
             "tree": tree,
             "parents": parents,
             "labelled_tree": labelled_tree,

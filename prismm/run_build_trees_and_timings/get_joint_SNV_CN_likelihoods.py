@@ -120,12 +120,12 @@ def find_BP_and_SNV_loglik(plambda_start, p_up_start, p_down_start, p_window, pl
             #            print(result)
 
             if res.fun < best_neg_loglik:
-                best_neg_loglik = res.fun
-                best_p_up = p_up
-                best_p_down = p_down
-                best_plambda = res.x
-                best_structures = temp_structures #copy.deepcopy(all_structures)
-                best_res = res
+                best_neg_loglik = copy.deepcopy(res.fun)
+                best_p_up = copy.deepcopy(p_up)
+                best_p_down = copy.deepcopy(p_down)
+                best_plambda = copy.deepcopy(res.x)
+                best_structures = copy.deepcopy(temp_structures) #copy.deepcopy(all_structures)
+                best_res = copy.deepcopy(res)
 
     # need to work out why this is getting None when it shouldn't
     if best_structures == None:

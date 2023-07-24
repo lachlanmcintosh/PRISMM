@@ -1,4 +1,3 @@
-from prismm.utils.make_left_heavy import make_left_heavy
 import logging 
 import copy
 
@@ -15,17 +14,24 @@ import copy
 ##### The tree structures can be simply constructed in a tuple of tuples format like tree = (value, left subtree, right subtree). 
 
 ### some basic tree functions:
-def sort_tree(tree):
+from typing import Optional, Tuple, Union, List, Set
+
+
+def sort_tree(tree: Optional[Tuple]) -> Optional[Tuple]:
     """
-    Sorts a tree in ascending order.
+    Sorts a tree in ascending order according to the first element of each subtree.
 
     Args:
-        tree (tuple or None): The tree to be sorted.
+        tree (Optional[Tuple]): The tree to be sorted. Each node is a tuple with the first element being the value,
+                                the second element being the left subtree, and the third element being the right subtree.
 
     Returns:
-        tuple or None: The sorted tree.
+        Optional[Tuple]: The sorted tree.
 
     """
+    # Input validation: tree must be either None or a tuple
+    assert isinstance(tree, (type(None), Tuple)), "Input must be a tuple or None."
+
     if tree is None:
         return None
 
@@ -48,7 +54,7 @@ def sort_tree(tree):
 
 
 
-
+# OLD ONE
 def compare_trees(tree1, tree2):
     tree1 = sort_tree(tree1)
     tree2 = sort_tree(tree2)
@@ -83,6 +89,7 @@ def compare_trees(tree1, tree2):
     # If the code reaches this point, the trees are not equal
     return False
 
+#OLD ONE
 def forests_are_equal(trees1, trees2):
     if len(trees1) != len(trees2):
         return False
@@ -95,6 +102,40 @@ def forests_are_equal(trees1, trees2):
         if not found_match:
             return False
     return True
+
+
+def compare_trees(tree1: Optional[Tuple], tree2: Optional[Tuple]) -> bool:
+    """
+    Compare two binary trees for equality.
+    
+    Parameters:
+    tree1 (Tuple): First binary tree
+    tree2 (Tuple): Second binary tree
+    
+    Returns:
+    bool: True if trees are equal, False otherwise
+    """
+    sorted_tree1 = sort_tree(tree1)
+    sorted_tree2 = sort_tree(tree2)
+    
+    return sorted_tree1 == sorted_tree2
+
+
+def forests_are_equal(forest1: List[Tuple], forest2: List[Tuple]) -> bool:
+    """
+    Compare two forests for equality. Forests are equal if they contain the same trees.
+    
+    Parameters:
+    forest1 (List[Tuple]): First forest as a list of trees
+    forest2 (List[Tuple]): Second forest as a list of trees
+    
+    Returns:
+    bool: True if forests are equal, False otherwise
+    """
+    sorted_forest1 = sorted(sort_tree(tree) for tree in forest1)
+    sorted_forest2 = sorted(sort_tree(tree) for tree in forest2)
+    
+    return sorted_forest1 == sorted_forest2
 
 
 def insert_node(trees, CN):
@@ -125,7 +166,53 @@ def insert_node(trees, CN):
 
     return new_trees
 
-def complete_tree(tree):
+from typing import List, Tuple
+
+def insert_node(trees: List[Tuple], copy_number: int) -> List[Tuple]:
+    """
+    Insert a node with the given copy number (CN) into every possible location in the input trees.
+
+    :param trees: A list of binary trees.
+    :param copy_number: The copy number to be inserted into the trees.
+    :return: A list of new trees with the CN inserted once into each input tree.
+    """
+
+    # base case
+    if not trees or trees == [()]:
+        return [(copy_number,)]
+    
+    new_trees = []
+
+    # insert node into trees
+    for tree in trees:
+
+        # If the tree has only one node and the copy_number is less than the node value
+        if isinstance(tree, tuple) and len(tree) == 1 and copy_number < tree[0]:
+            new_copy_numbers = (copy_number, tree[0] - copy_number)
+            new_trees.append(sort_tree((tree[0], (max(new_copy_numbers),), (min(new_copy_numbers),))))
+        
+        # If the tree has multiple nodes, insert the copy number into each subtree
+        elif isinstance(tree, tuple) and len(tree) == 3:
+            
+            # Generate new trees by inserting the copy_number into the left subtree
+            left_subtrees = insert_node([tree[1]], copy_number)
+            for left_subtree in left_subtrees:
+                new_trees.append(sort_tree((tree[0], left_subtree, tree[2])))
+            
+            # Generate new trees by inserting the copy_number into the right subtree
+            right_subtrees = insert_node([tree[2]], copy_number)
+            for right_subtree in right_subtrees:
+                new_trees.append(sort_tree((tree[0], tree[1], right_subtree)))
+            
+            # Generate new trees by inserting the copy_number into both subtrees
+            for left_subtree in left_subtrees:
+                for right_subtree in right_subtrees:
+                    new_trees.append(sort_tree((tree[0], left_subtree, right_subtree)))
+
+    return new_trees
+
+
+def complete_tree(tree: Union[Tuple[int], Tuple[int, Tuple[int]], Tuple[int, Tuple[int], Tuple[int]]]) -> Set[Tuple[int, Tuple[int], Tuple[int]]]:
     """
     Given a tree structure as tuple, completes the tree by adding nodes and
     making it left-heavy. Returns a set of completed tree structures.
@@ -134,18 +221,32 @@ def complete_tree(tree):
     :return: A set of completed tree structures.
     :raises ValueError: If the input tree tuple has a length other than 1, 2, or 3.
     """
-    def _complete_tree_three_elements(tree):
+    assert isinstance(tree, tuple), f"Expected 'tree' to be a tuple, but got {type(tree).__name__} with value {tree}"
+    assert 1 <= len(tree) <= 3, "Tree must have 1 to 3 elements"
+
+    def _complete_three_elements(tree: Tuple[int, Tuple[int], Tuple[int]]) -> Set[Tuple[int, Tuple[int], Tuple[int]]]:
+        """
+        Helper function for handling trees with three elements.
+
+        :param tree: A tuple representing a tree structure with 3 elements.
+        :return: A set of completed tree structures.
+        """
         left_trees = complete_tree(tree[1])
         right_trees = complete_tree(tree[2])
 
         completed_trees = set()
         for left_tree in left_trees:
             for right_tree in right_trees:
-                completed_trees.add(make_left_heavy((tree[0], left_tree, right_tree)))
+                completed_trees.add(sort_tree((tree[0], left_tree, right_tree)))
         return completed_trees
 
+    def _complete_two_elements(tree: Tuple[int, Tuple[int]]) -> Set[Tuple[int, Tuple[int], Tuple[int]]]:
+        """
+        Helper function for handling trees with two elements.
 
-    def _complete_tree_two_elements(tree):
+        :param tree: A tuple representing a tree structure with 2 elements.
+        :return: A set of completed tree structures.
+        """
         left_trees = complete_tree(tree[1])
         completed_trees = set()
 
@@ -153,11 +254,16 @@ def complete_tree(tree):
             for i in range(1, tree[0] - left_tree[0]):
                 right_trees = complete_tree((tree[0] - left_tree[0] - i,))
                 for right_tree in right_trees:
-                    completed_trees.add(make_left_heavy((tree[0], left_tree, right_tree)))
+                    completed_trees.add(sort_tree((tree[0], left_tree, right_tree)))
         return completed_trees
 
+    def _complete_one_element(tree: Tuple[int]) -> Set[Tuple[int, Tuple[int], Tuple[int]]]:
+        """
+        Helper function for handling trees with one element.
 
-    def _complete_tree_one_element(tree):
+        :param tree: A tuple representing a tree structure with 1 element.
+        :return: A set of completed tree structures.
+        """
         if tree[0] == 0 or tree[0] == 1:
             return {tree}
 
@@ -168,15 +274,15 @@ def complete_tree(tree):
 
             for left_tree in left_trees:
                 for right_tree in right_trees:
-                    completed_trees.add(make_left_heavy((tree[0], left_tree, right_tree)))
+                    completed_trees.add(sort_tree((tree[0], left_tree, right_tree)))
         return completed_trees
 
     if len(tree) == 3:
-        return _complete_tree_three_elements(tree)
+        return _complete_three_elements(tree)
     elif len(tree) == 2:
-        return _complete_tree_two_elements(tree)
+        return _complete_two_elements(tree)
     elif len(tree) == 1:
-        return _complete_tree_one_element(tree)
+        return _complete_one_element(tree)
     else:
         raise ValueError("Invalid tree structure. Expected tuple length between 1 and 3.")
 
@@ -200,20 +306,28 @@ def complete_trees(trees):
 
 
 
-def generate_trees(observed_CNs, SNV_CNs):
+def generate_trees(observed_copy_numbers, SNV_CNs):
     """
     Generate all possible trees of every copy number from the multiplicity counts of the chromosomes and the SNVs.
 
-    :param observed_CNs: A list of observed copy numbers.
+    :param observed_copy_numbers: A list of observed copy numbers.
     :param SNV_CNs: A list of copy numbers for SNVs.
     :return: A list of unique trees.
     """
 
     SNV_CNs.sort(reverse=True)
-    observed_CNs.sort(reverse=True)
+    observed_copy_numbers.sort(reverse=True)
+
+    for SNV_CN in SNV_CNs:
+        assert isinstance(SNV_CN, int)
+        assert SNV_CN >= 0
+
+    for CN in observed_copy_numbers:
+        assert isinstance(CN, int)
+        assert(CN >= 0)
 
     # Initialize trees with the following tree for each chromosome
-    trees = [(sum(observed_CNs), (max(observed_CNs),), (min(observed_CNs),))]
+    trees = [(sum(observed_copy_numbers), (max(observed_copy_numbers),), (min(observed_copy_numbers),))]
 
     for SNV_CN in SNV_CNs:
         if SNV_CN == 1:
@@ -222,15 +336,16 @@ def generate_trees(observed_CNs, SNV_CNs):
         trees_with_new_node = insert_node(trees, SNV_CN)
 
         if not trees_with_new_node:
-            assert SNV_CN in observed_CNs
+            assert SNV_CN in observed_copy_numbers
             continue
 
-        if SNV_CN in observed_CNs:
-            trees += trees_with_new_node
+        if SNV_CN in observed_copy_numbers:
+            trees += trees_with_new_node # (we don't want to force it being inserted so we append it)
         else:
             trees = trees_with_new_node
 
         while True:
+            # don't know how many time to reinsert the node:
             trees_with_node_inserted_again = insert_node(trees_with_new_node, SNV_CN)
             if not trees_with_node_inserted_again:
                 break
@@ -241,26 +356,28 @@ def generate_trees(observed_CNs, SNV_CNs):
     # Insert the "leaf nodes" into the tree - all of which are of CN 1
     trees = complete_trees(trees)
 
-    trees = [sort_tree(tree) for tree in trees] 
+    trees = sorted([sort_tree(tree) for tree in trees])
     return trees
 
 
 
-def get_all_trees(observed_SNV_multiplicities, observed_CNs, total_epochs, tree_flexibility):
+def get_all_trees(observed_SNV_multiplicities, observed_copy_numbers, total_epochs_est, tree_flexibility):
     trees = {}
     for chrom in observed_SNV_multiplicities:
         logging.debug(chrom)
-        logging.debug(observed_CNs)
+        logging.debug(observed_copy_numbers)
         logging.debug(observed_SNV_multiplicities)
 
         all_trees = generate_trees(
-            observed_CNs=observed_CNs[chrom],
+            observed_copy_numbers=observed_copy_numbers[chrom],
             SNV_CNs=list(observed_SNV_multiplicities[chrom].keys())
         )
         trees_to_keep = []
         for tree in all_trees:
             depth = max_tree_depth(tree)
-            if tree_in_bounds(tree,total_epochs,tree_flexibility):
+            if tree_in_bounds(tree=tree,
+                              total_epochs_est=total_epochs_est,
+                              tree_flexibility=tree_flexibility):
                 trees_to_keep.append(tree)
         trees[chrom] = copy.deepcopy(trees_to_keep)
 
@@ -272,14 +389,16 @@ def get_all_trees(observed_SNV_multiplicities, observed_CNs, total_epochs, tree_
                 logging.debug("%s", max_tree_depth(result))
 
             logging.info("trees are of length 0")
-            tests = [tree_in_bounds(tree,total_epochs,tree_flexibility) for tree in all_trees]
+            tests = [tree_in_bounds(tree=tree,
+                                    total_epochs_est=total_epochs_est,
+                                    tree_flexibility=tree_flexibility) for tree in all_trees]
             logging.info("tests %s", tests)
             logging.info("any tests %s", any(tests))
             logging.info("chrom %s", chrom)
             logging.info("trees %s", all_trees)
             logging.info("max_tree_depth %s", [max_tree_depth(tree) for tree in all_trees])
-            logging.info("bounds %s", (total_epochs +2  - tree_flexibility,total_epochs + 2))
-            logging.info("total_epochs %s", total_epochs)
+            logging.info("bounds %s", (total_epochs_est +2  - tree_flexibility,total_epochs_est + 2))
+            logging.info("total_epochs %s", total_epochs_est)
 
             return None
 
@@ -312,29 +431,9 @@ def max_tree_depth(tree):
 
     return max_depth + 1
 
-
-def test_max_tree_depth():
-    tree1 = (6, (3,), (3, (2,), (1,)))
-    tree2 = (1, (2, (3,)), (4, (5, (6,))))
-    tree3 = (1,)
-    tree4 = ()
-    tree5 = (1, (2, (3, (4, (5, (6,))))))
-    tree6 = (4, (2, (1,), (1,)), (2, (1,), (1,)))
-
-    assert max_tree_depth(tree1) == 3, f"Failed for tree1: {tree1}"
-    assert max_tree_depth(tree2) == 4, f"Failed for tree2: {tree2}"
-    assert max_tree_depth(tree3) == 1, f"Failed for tree3: {tree3}"
-    assert max_tree_depth(tree4) == 0, f"Failed for tree4: {tree4}"
-    assert max_tree_depth(tree5) == 6, f"Failed for tree5: {tree5}"
-    assert max_tree_depth(tree6) == 3, f"Failed for tree5: {tree5}"
-
-
-test_max_tree_depth()
-
-def tree_in_bounds(tree,total_epochs,tree_flexibility):
-    # it is plus three because the root node is fictional, and the next two nodes have occured prior to the simulation and the leaf nodes don't need any SNVs
-    # ahh it should actually be 2 because the root node is fictional but either the next two nodes or the root node something needs to happen
+def tree_in_bounds(tree, total_epochs_est, tree_flexibility):
     depth = max_tree_depth(tree)
-    return depth >= total_epochs + 2 - tree_flexibility and depth <= total_epochs + 2
+    # it is plus 1 here because the root node is a ficitonal node and the leaves don't HAVE to count
+    return depth >= total_epochs_est + 2 - tree_flexibility and depth <= total_epochs_est + 2
 
 

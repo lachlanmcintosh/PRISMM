@@ -1,5 +1,6 @@
 import logging
 from typing import Dict
+import copy
 
 from prismm.run_simulation.create_simulated_tree.insert_node import insert_nodes_into_tree
 from prismm.run_simulation.create_simulated_tree.add_metadata import (

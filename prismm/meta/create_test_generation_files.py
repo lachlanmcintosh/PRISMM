@@ -83,7 +83,7 @@ def inject_io_logging(code: str) -> str:
         "        result = func(*args, **kwargs)",
         "",
         "        # Identify and log changes to the mutable input arguments",
-        "        changed_args = {arg: value for arg, value in args_dict.items() if isinstance(value, (list, dict, set)) and value != input_copies.get(arg)}",
+        "        changed_args = {arg: value for arg, value in args_dict.items() if isinstance(value, (list, dict, set))}",
         "",
         "        # Check and create IO_LOGGER directory if it doesn't exist",
         "        if not os.path.exists('IO_LOGGER'):",

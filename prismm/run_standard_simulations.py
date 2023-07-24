@@ -29,9 +29,9 @@ SBATCH_SCRIPT_TEMPLATE = """#!/bin/bash
 source ~/anaconda3/etc/profile.d/conda.sh
 conda activate sage
 
-python do_all.py -t {job_id} -f {filename} --run_scripts 1 2 3 4 --lam {lam} --alpha {alpha}
+python prismm/do_simulation_inference_analysis.py --test_case {job_id} --simulation_filename {filename} --run 1 2 3 4 --lam {lam} --alpha {alpha} --rate 1000
 """
-
+# TODO remove the rate limiter
 
 class SimulationManager:
     """
@@ -126,11 +126,11 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--filename", type=str, default="simulation",
                         help="The base name for the log files. Default is 'simulation'.")
-    parser.add_argument("--lam", type=float, default=2.5,
+    parser.add_argument("--lam", type=float, default=2,
                         help="Lambda value for the simulation. Default is 1.0.")
-    parser.add_argument("--alpha", nargs="+", type=float, default=[20.0, 20.0, 100.0],
+    parser.add_argument("--alpha", nargs="+", type=float, default=[20.0, 20.0, 20.0],
                         help="Alpha values for the simulation as a list of floats.")
-    parser.add_argument("--total_reps", type=int, default=50,
+    parser.add_argument("--total_reps", type=int, default=300,
                         help="Total number of repetitions for the simulation. Default is 40.")
     parser.add_argument("--max_cpus", type=int, default=1000,
                         help="The maximum number of CPUs to use. Default is 300.")

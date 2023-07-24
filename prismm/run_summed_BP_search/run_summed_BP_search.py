@@ -20,7 +20,7 @@ def generate_default_paths(max_default_path_length):
 def load_data_and_compute_likelihoods(args, default_paths):
     data = load_results_from_file(test_case=args.test_case, simulation_name=args.simulation_filename)
     pretty_print_data(data=data)
-    likelihoods = CN_multiplicities_to_likelihoods(observed_CN_multiplicities=data['observed_CN_multiplicities'])
+    likelihoods = CN_multiplicities_to_likelihoods(observed_copy_number_multiplicities=data['observed_copy_number_multiplicities'])
     computed_likelihoods = compute_likelihoods(
         likelihoods=likelihoods,
         max_number_of_solutions=args.max_number_of_solutions,
