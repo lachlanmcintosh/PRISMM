@@ -10,9 +10,10 @@ from prismm.utils.set_logging_settings import set_logging_settings
 from prismm.run_build_trees_and_timings.get_SNV_multiplicities import count_SNV_multiplicities
 from prismm.utils.path_codes import generate_path, path_code_to_pre_mid_post, pre_mid_post_to_path_length
 from prismm.run_build_trees_and_timings.get_all_trees import get_all_trees
-from prismm.run_build_trees_and_timings.get_all_timings import get_all_timings
-from prismm.run_build_trees_and_timings.get_BP_likelihoods import timing_struct_to_all_structures
+from prismm.run_build_trees_and_timings.add_timings_to_trees import add_timings_to_trees
+from prismm.run_build_trees_and_timings.get_annotated_trees_and_timings import get_annotated_trees_and_timings
 from prismm.run_build_trees_and_timings.get_joint_SNV_CN_likelihoods import find_BP_and_SNV_loglik
+
 from prismm.utils.LENGTHS import LENGTHS
 
 def sum_SNV_counts(observed_SNV_multiplicities):
@@ -210,6 +211,8 @@ def handle_errors(all_structures):
     return impossible
 
 
+
+
 def find_solutions(SS, p_window, plambda_window, tree_flexibility, alpha):
     SS["observed_SNV_multiplicities"] = count_SNV_multiplicities(SS['simulated_chromosomes'])
     SEARCH_DEPTH = len(SS['searchable_likelihoods'])
@@ -228,42 +231,11 @@ def find_solutions(SS, p_window, plambda_window, tree_flexibility, alpha):
         path_est, p_up_start, p_down_start, pre_est, mid_est, post_est = get_tree_and_rate_parameters(res, SEARCH_DEPTH, SS)
         print_results(res, path_est, p_up_start, p_down_start, pre_est, mid_est, post_est)
 
-        total_epochs_est = pre_mid_post_to_path_length(pre_est, mid_est, post_est)
-
-        start_time_trees_and_timings = time.time()
-        trees = get_all_trees(
-            observed_SNV_multiplicities=SS["observed_SNV_multiplicities"],
-            observed_copy_numbers=SS["observed_copy_numbers"],
-            total_epochs_est=total_epochs_est,
-            tree_flexibility=tree_flexibility
-        )
-
-        if trees is not None:
-            trees_and_timings = get_all_timings(
-                trees=trees,
-                total_epochs_est=total_epochs_est
-            )
-        else:
-            trees_and_timings = None
-
-        end_time_trees_and_timings = time.time()
-
-        aggregated_execution_times["get_all_trees_and_timings"] += round(end_time_trees_and_timings - start_time_trees_and_timings, 2)
-
-        if trees_and_timings is None:
-            continue
-
-        start_time_all_structures = time.time()
-        all_structures = timing_struct_to_all_structures(
-            trees_and_timings=trees_and_timings,
-            pre_est=pre_est,
-            mid_est=mid_est,
-            post_est=post_est,
-            total_epochs_est=total_epochs_est
-        )
-        end_time_all_structures = time.time()
-
-        aggregated_execution_times["timing_struct_to_all_structures"] += round(end_time_all_structures - start_time_all_structures, 2)
+        annotated_trees_and_timings = get_annotated_trees_and_timings(SS=SS, 
+                                                                      pre_est=pre_est, 
+                                                                      mid_est=mid_est, 
+                                                                      post_est=post_est, 
+                                                                      tree_flexibility=tree_flexibility)
 
         plambda_start, total_SNVs = initial_rate_estimate(pre_est, mid_est, post_est, SS)
 
@@ -274,7 +246,7 @@ def find_solutions(SS, p_window, plambda_window, tree_flexibility, alpha):
             p_down_start=p_down_start,
             p_window=p_window,
             plambda_window=plambda_window,
-            all_structures=all_structures,
+            all_structures=annotated_trees_and_timings,
             observed_SNV_multiplicities=SS["observed_SNV_multiplicities"],
             total_SNVs=total_SNVs,
             tree_flexibility=tree_flexibility
@@ -308,7 +280,7 @@ def find_solutions(SS, p_window, plambda_window, tree_flexibility, alpha):
         if result_dict is not None:
             handle_results(result_dict)
         else:
-            impossible = handle_errors(all_structures)
+            impossible = handle_errors(annotated_trees_and_timings)
             if impossible:
                 continue
 

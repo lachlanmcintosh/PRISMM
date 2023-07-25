@@ -242,3 +242,125 @@ def test_get_path_code():
     assert result == expected, f"get_path_code returned incorrect result: {result}"
 
 test_get_path_code()
+
+
+
+def test_stack_same_CN_branch_lengths():
+    # First test case
+    unique_CNs = [5, 3, 2, 1]
+    CNs = [5, 3, 2, 1, 1, 1, 2, 1, 1]
+    branch_lengths = np.array([[1, 1, 0, 1, 1, 1, 0, 2, 2],
+                               [1, 1, 0, 1, 1, 1, 1, 1, 1],
+                               [1, 1, 0, 1, 1, 1, 2, 0, 0],
+                               [1, 1, 1, 0, 0, 1, 0, 2, 2],
+                               [1, 1, 1, 0, 0, 1, 1, 1, 1],
+                               [1, 1, 1, 0, 0, 1, 2, 0, 0],
+                               [1, 2, 0, 0, 0, 0, 0, 2, 2],
+                               [1, 2, 0, 0, 0, 0, 1, 1, 1],
+                               [1, 2, 0, 0, 0, 0, 2, 0, 0],
+                               [2, 1, 0, 0, 0, 0, 0, 1, 1],
+                               [2, 1, 0, 0, 0, 0, 1, 0, 0]], dtype=object)
+    result = stack_same_CN_branch_lengths(CNs, branch_lengths)
+    expected = np.array([[1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2],
+                         [1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1],
+                         [0, 1, 2, 1, 2, 3, 0, 1, 2, 0, 1],
+                         [7, 5, 3, 5, 3, 1, 4, 2, 0, 2, 0]], dtype=object).T
+    assert np.array_equal(result, expected), f"stack_same_CN_branch_lengths returned incorrect values.\nExpected: {expected}\nGot: {result}"
+
+    # Second test case
+    unique_CNs = [3, 2, 1, 0]
+    CNs = [3, 3, 2, 1, 1, 1, 0]
+    branch_lengths = np.array([[1, 1, 0, 1, 1, 1, 2],
+                               [1, 1, 1, 0, 0, 1, 2],
+                               [1, 2, 0, 0, 0, 0, 2],
+                               [2, 1, 0, 0, 0, 0, 1]], dtype=object)
+    result = stack_same_CN_branch_lengths(CNs, branch_lengths)
+   
+    expected = np.array([[2, 2, 3, 3],
+                         [0, 1, 0, 0],
+                         [3, 1, 0, 0],
+                         [2, 2, 2, 1]], dtype=object).T
+    assert np.array_equal(result, expected), f"stack_same_CN_branch_lengths returned incorrect values.\nExpected: {expected}\nGot: {result}"
+
+    # Third test case
+    unique_CNs = [4, 2, 1, 0]
+    CNs = [4, 4, 2, 1, 1, 2, 1, 1, 0]
+    branch_lengths = np.array([[1, 1, 0, 1, 1, 0, 1, 1, 2],
+                               [1, 1, 0, 1, 1, 1, 0, 0, 2],
+                               [1, 1, 1, 0, 0, 0, 1, 1, 2],
+                               [1, 1, 1, 0, 0, 1, 0, 0, 2],
+                               [1, 2, 0, 0, 0, 0, 0, 0, 2],
+                               [2, 1, 0, 0, 0, 0, 0, 0, 1]], dtype=object)
+    result = stack_same_CN_branch_lengths(CNs, branch_lengths)
+    expected = np.array([[2, 2, 2, 2, 3, 3],
+                         [0, 1, 1, 2, 0, 0],
+                         [4, 2, 2, 0, 0, 0],
+                         [2, 2, 2, 2, 2, 1]], dtype=object).T
+    assert np.array_equal(result, expected), f"stack_same_CN_branch_lengths returned incorrect values.\nExpected: {expected}\nGot: {result}"
+
+
+#test_stack_same_CN_branch_lengths()
+
+def test_find_non_parent_children():
+    parents = {1: 0, 2: 0, 4: 3, 5: 3}
+    expected_non_parent_children = {1, 2, 4, 5}
+    non_parent_children = find_non_parent_children(parents)
+    assert non_parent_children == expected_non_parent_children, f"Expected {expected_non_parent_children}, but got {non_parent_children}"
+
+# Run the test function
+test_find_non_parent_children()
+
+
+def test_calculate_child_parent_diff():
+    # First test case
+    epochs_created = np.array([[-1, 0, 1, 1, 1, 1, 0],
+                               [-1, 0, 1, 2, 2, 1, 0],
+                               [-1, 0, 2, 2, 2, 2, 0],
+                               [-1, 1, 2, 2, 2, 2, 1]], dtype=object)
+    parents = {3: 2, 4: 2, 2: 1, 5: 1, 1: 0, 6: 0}
+    max_epoch = 2
+    result = calculate_child_parent_diff(epochs_created, parents, max_epoch)
+    expected = np.array([[1, 1, 0, 1, 1, 1, 2],
+                         [1, 1, 1, 0, 0, 1, 2],
+                         [1, 2, 0, 0, 0, 0, 2],
+                         [2, 1, 0, 0, 0, 0, 1]], dtype=object)
+    assert np.array_equal(result, expected), f"calculate_child_parent_diff returned incorrect values.\nExpected: {expected}\nGot: {result}"
+
+    # Second test case
+    epochs_created = np.array([[-1, 0, 1, 1, 1, 1, 1, 1, 0],
+                               [-1, 0, 1, 1, 1, 1, 2, 2, 0],
+                               [-1, 0, 1, 2, 2, 1, 1, 1, 0],
+                               [-1, 0, 1, 2, 2, 1, 2, 2, 0],
+                               [-1, 0, 2, 2, 2, 2, 2, 2, 0],
+                               [-1, 1, 2, 2, 2, 2, 2, 2, 1]], dtype=object)
+    parents = {3: 2, 4: 2, 2: 1, 6: 5, 7: 5, 5: 1, 1: 0, 8: 0}
+    max_epoch = 2
+    result = calculate_child_parent_diff(epochs_created, parents, max_epoch)
+    expected = np.array([[1, 1, 0, 1, 1, 0, 1, 1, 2],
+                         [1, 1, 0, 1, 1, 1, 0, 0, 2],
+                         [1, 1, 1, 0, 0, 0, 1, 1, 2],
+                         [1, 1, 1, 0, 0, 1, 0, 0, 2],
+                         [1, 2, 0, 0, 0, 0, 0, 0, 2],
+                         [2, 1, 0, 0, 0, 0, 0, 0, 1]], dtype=object)
+    assert np.array_equal(result, expected), f"calculate_child_parent_diff returned incorrect values.\nExpected: {expected}\nGot: {result}"
+
+
+test_calculate_child_parent_diff()
+
+
+def test_find_indices():
+    test_list = [1, 2, 3, 2, 4, 2, 5]
+    item = 2
+    indices = find_indices(test_list, item)
+    assert indices == [1, 3, 5], "find_indices returned incorrect indices"
+
+
+
+
+def test_extract_copy_numbers():
+    tree = "(3,(1,1))"
+    CNs = extract_copy_numbers(tree)
+    assert CNs == [3, 1, 1], "extract_copy_numbers returned incorrect CNs"
+
+
+test_extract_copy_numbers()
