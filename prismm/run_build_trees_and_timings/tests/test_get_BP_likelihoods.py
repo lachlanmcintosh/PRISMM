@@ -301,14 +301,7 @@ def test_stack_same_CN_branch_lengths():
 
 #test_stack_same_CN_branch_lengths()
 
-def test_find_non_parent_children():
-    parents = {1: 0, 2: 0, 4: 3, 5: 3}
-    expected_non_parent_children = {1, 2, 4, 5}
-    non_parent_children = find_non_parent_children(parents)
-    assert non_parent_children == expected_non_parent_children, f"Expected {expected_non_parent_children}, but got {non_parent_children}"
 
-# Run the test function
-test_find_non_parent_children()
 
 
 def test_calculate_child_parent_diff():

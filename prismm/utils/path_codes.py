@@ -112,6 +112,21 @@ def generate_path(pre, mid, post):
 
     return path
 
+def create_path(pre, mid, post):
+    path = []
+    if pre > 0:
+        path += ["A"] * pre
+    if mid > -1:
+        path += ["GD"]
+    if mid > 0:
+        path += ["A"] * mid
+    if post > -1:
+        path += ["GD"]
+    if post > 0:
+        path += ["A"] * post
+
+    return path
+
 import random
 
 def test_pre_mid_post_encoding():

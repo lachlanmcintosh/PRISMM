@@ -1,61 +1,268 @@
 from prismm.utils.path_codes import pre_mid_post_to_path_length
 from prismm.run_build_trees_and_timings.get_all_trees import get_all_trees
 from prismm.run_build_trees_and_timings.add_timings_to_trees import add_timings_to_trees
+from prismm.utils.path_codes import create_path
 import logging
 import numpy as np
-from typing import Dict
+from typing import Dict, List, Tuple, Any
 import re
 
-def get_branch_lengths(trees_and_timings, max_epoch):
-    tree, labelled_tree, count, epochs_created, parents = trees_and_timings
-    branch_lengths = calculate_child_parent_diff(
-        epochs_created = epochs_created, 
-        parents = parents,
-        max_epoch = max_epoch
-    )
-    CNs = extract_copy_numbers(tree)
-    stacked_branch_lengths,unique_CNs = stack_same_CN_branch_lengths(CNs, branch_lengths)
-   
-    logging.debug("trees_and_timings")
-    logging.debug(str(trees_and_timings))
-    logging.debug("max_epoch")
-    logging.debug(max_epoch)
-    logging.debug("branch_lengths")
-    logging.debug(branch_lengths)
-    logging.debug("stacked_branch_lengths")
-    logging.debug(stacked_branch_lengths)
+def calculate_branch_lengths(epochs_created: np.ndarray, parents: Dict[int, int], max_epoch: int) -> np.ndarray:
+    """
+    Calculate the difference between child and parent epochs.
 
-    return CNs, unique_CNs, branch_lengths, stacked_branch_lengths
+    Args:
+        epochs_created (np.ndarray): A 2D numpy array containing the epochs when elements were created.
+        parents (Dict[int, int]): A dictionary with keys as child indices and values as their parent indices.
+        max_epoch (int): The total number of epochs.
+
+    Returns:
+        np.ndarray: A 2D numpy array containing the difference between child and parent epochs.
+    """
+
+    # Input validation
+    if not isinstance(epochs_created, np.ndarray) or epochs_created.ndim != 2:
+        logging.error(f"epochs_created must be a 2D numpy array, but was {type(epochs_created)} with dimensions {epochs_created.ndim}. epochs_created: {str(epochs_created)}")
+        return None
+
+    if not isinstance(parents, dict):
+        logging.error(f"parents must be a dictionary, but was {type(parents)}")
+        return None
+
+    # Find leaf nodes
+    all_children = set(parents.keys())
+    all_parents = set(parents.values())
+    leaf_nodes = all_children.difference(all_parents)
+
+    branch_lengths = np.copy(epochs_created)
+    for child in parents: 
+        branch_lengths[:, parents[child]] = epochs_created[:, child] - epochs_created[:, parents[child]]
+
+    for leaf in leaf_nodes:
+        branch_lengths[:, leaf] = max_epoch - epochs_created[:, leaf]
+        
+    return branch_lengths
+
+
+def extract_copy_numbers(tree: Tuple) -> List[int]:
+    """
+    Extract copy numbers from the given tree.
+
+    Arguments:
+    tree -- an object representing a tree.
+
+    Returns:
+    A list of copy numbers extracted from the tree.
+    """
+    # Adjusted regex to also split on spaces
+    tree_elements = re.split("\(|\)|,|'|\s", str(tree))
+
+    # Filter out non-digit elements and convert to integers
+    copy_numbers = [int(element) for element in tree_elements if element.isdigit()]
+
+    return copy_numbers
+
+
+def find_indices(list_to_check: List[Any], item_to_find: Any) -> List[int]:
+    """
+    Find indices of a specific item in a list.
+
+    Arguments:
+    list_to_check -- the list in which to find the item.
+    item_to_find -- the item to find in the list.
+
+    Returns:
+    A list of indices where the item is found.
+    """
+    # Check if the list is empty
+    assert list_to_check, "Input list is empty."
+
+    indices = [index for index, element in enumerate(list_to_check) if element == item_to_find]
+
+    return indices
+
+
+def stack_same_CN_branch_lengths(copy_numbers: List[int], branch_lengths: np.ndarray) -> Tuple[np.ndarray, List[int]]:
+    """
+    Stack branch lengths of the same copy number state.
+
+    Arguments:
+    copy_numbers -- a list of copy number states, matching the second dimension of branch_lengths.
+    branch_lengths -- a 2D array where the second dimension matches copy_numbers.
+
+    Returns:
+    A tuple containing a 2D numpy array where branch lengths of the same copy number state have been stacked, 
+    and a list of unique copy number states.
+    """
+    # Check if the copy_numbers list and second dimension of branch_lengths have the same size
+    assert len(copy_numbers) == branch_lengths.shape[1], "Copy numbers and branch lengths dimension mismatch."
+    assert len(copy_numbers) >= 2
+
+    # Remove the root node
+    copy_numbers = copy_numbers[1:]
+    branch_lengths = branch_lengths[:, 1:]
+
+    # Get unique copy numbers in descending order
+    unique_copy_numbers = sorted(set(copy_numbers), reverse=True)
+
+    stacked_branch_lengths = []
+
+    for copy_number in unique_copy_numbers:
+        indices = find_indices(copy_numbers, copy_number)
+
+        # Sum the branch lengths along the specified axis (column-wise sum)
+        new_stacked_branch_lengths = branch_lengths[:, indices].sum(axis=1)
+
+        stacked_branch_lengths.append(new_stacked_branch_lengths)
+
+    # Stack arrays in sequence vertically (row-wise)
+    stacked_branch_lengths = np.vstack(stacked_branch_lengths).T
+
+    return stacked_branch_lengths, unique_copy_numbers
+
+def get_branch_lengths(tts: Dict[str, Any], max_epoch: int) -> Dict[str, Any]:
+    """
+    Calculate branch lengths, extract copy numbers, stack branch lengths of the same copy number state, and find unique copy numbers.
+    
+    Args:
+        tts (Dict[str, Any]): A dictionary containing 'epochs_created', 'parents', and 'tree' as keys.
+        max_epoch (int): The total number of epochs.
+
+    Returns:
+        Dict[str, Any]: The updated dictionary with added 'branch_lengths', 'CNs', 'stacked_branch_lengths', and 'unique_CNs'.
+    """
+    # Input validation
+    if not isinstance(tts, dict):
+        logging.error(f"tts must be a dictionary, but was {type(tts)}")
+        return None
+
+    if not isinstance(max_epoch, int) or max_epoch < 0:
+        logging.error(f"max_epoch must be a non-negative integer, but was {type(max_epoch)} with value {max_epoch}")
+        return None
+
+    tts["branch_lengths"] = calculate_branch_lengths(
+        epochs_created=tts.get("epochs_created"), 
+        parents=tts.get("parents"),
+        max_epoch=max_epoch
+    )
+    
+    if tts["branch_lengths"] is None:
+        return None
+
+    tts["CNs"] = extract_copy_numbers(tts.get("tree"))
+    
+    stacked_branch_lengths, unique_CNs = stack_same_CN_branch_lengths(tts["CNs"], tts["branch_lengths"])
+    
+    if stacked_branch_lengths is None or unique_CNs is None:
+        return None
+
+    tts["stacked_branch_lengths"] = stacked_branch_lengths
+    tts["unique_CNs"] = unique_CNs
+    
+    return tts
+
+
+def generate_path_code(path: List[str]) -> str:
+    """
+    This function takes a list of codes and generates a path code string.
+    It treats "A" as an increment to a count, and "GD" as a delimiter to separate
+    chunks of counts with "G".
+
+    Args:
+    path: A list of string codes. 
+
+    Returns:
+    A string representing the path code.
+    """
+    path_code = ""
+    count = 0
+
+    for code in path:
+        if code == "A":
+            count += 1
+        elif code == "GD":
+            path_code += str(count)
+            count = 0
+            path_code += "G"
+
+    path_code += str(count)
+    return path_code
+
+
+def calculate_branch_process_paths(branch_lengths: np.ndarray, starts: np.ndarray, ends: np.ndarray, path: List[str]) -> np.ndarray:
+    """
+    This function calculates the paths in a branching process.
+
+    Args:
+    branch_lengths: A 2D numpy array representing the lengths of the branches.
+    starts: A 2D numpy array representing the start points for each path.
+    ends: A 2D numpy array representing the end points for each path.
+    path: A list of string codes that represent the path.
+
+    Returns:
+    A 2D numpy array with the same shape as branch_lengths, filled with path codes.
+    """
+    assert branch_lengths.shape == starts.shape == ends.shape, "The input arrays must have the same shape."
+    assert len(path) >= np.max(ends), "The path list should be at least as long as the maximum value in the ends array."
+
+    paths = np.zeros(branch_lengths.shape, dtype=object, order="C")
+
+    for row in range(branch_lengths.shape[0]):
+        for col in range(branch_lengths.shape[1]):
+            these_paths = path[starts[row][col] : ends[row][col]]
+            path_code = generate_path_code(these_paths)
+            paths[row][col] = path_code
+
+    return paths
+
+
+# this needs to be updated for paths with length longer than 1. 
+# suppose a path was like GG1. The branching process can take this and calculate a probability, however when the SNV likelihood doe sthe same thing it gives an incompatible probability. 
+# the SNV likelihood needs to know how long SNV can accumulate on a branch. for SNVs to accurately take iunto consideration of how lon g they can accumulate, the BP lieklihood needs to recognise this. 
+
+# therefore GG1 really needs to look like p(GG1) = p(GD, GD) * p(D)^3 * 4 * p(L)
+# this is not straightforward to program. How do we do it?
+# furthermroe, how do we recognise it?
+#
+
+# first we recoginise this phenomenum as occuring to paths greater than length 1. all other paths naturally work.
+# P(GG1 1 to 2 true) = P(GG1 1 to 1) * UA/(1-U-D)
+# this works because there si always one chromosome where nothing happens to it. in the 1 to 1 caseA
+
+# does this also work fro paths of length 1?
+# yes if it is a non genome doubling one. 
+# actually it always works unless the last epoch is a gd one. then it is just the usual. /calculate_BP_paths
+
+
+
+
+
+
+
+
 
 def add_branch_lengths_to_timings_and_trees_per_chrom(trees_and_timings, pre_est, mid_est, post_est, total_epochs_est):
     logging.debug("trees_and_timings")
     logging.debug(trees_and_timings)
     all_structures = [] 
-    for index, these_tts in enumerate(trees_and_timings):  # these tts are a 2d array
-        if None in these_tts[3]:
-            continue
-            #BP_likelihoods = -1
-        else:
-            # trace back to here, asdfasdf
-            CNs, unique_CNs, branch_lengths, stacked_branch_lengths = get_branch_lengths(trees_and_timings=these_tts, max_epoch=total_epochs_est)
+    for these_tts in trees_and_timings: 
 
-            logging.debug("CNs, unique_CNs, branch_lengths, stacked_branch_lengths")
-            logging.debug(f"{CNs}, {unique_CNs}, {branch_lengths}, {stacked_branch_lengths}")
-            logging.debug("starts and ends")
+        # trace back to here, asdfasdf
+        CNs, unique_CNs, branch_lengths, stacked_branch_lengths = get_branch_lengths(trees_and_timings=these_tts, max_epoch=total_epochs_est)
 
-            path_est = create_path(pre_est, mid_est, post_est)
+        path_est = create_path(pre_est, mid_est, post_est)
 
-            logging.debug(path_est)
+        logging.debug(path_est)
 
-            starts = these_tts[3] #+1
-            ends = these_tts[3] + branch_lengths #+1
+        starts = these_tts[3] #+1
+        ends = these_tts[3] + branch_lengths #+1
 
-            logging.debug("starts")
-            logging.debug(starts)
-            logging.debug("ends")
-            logging.debug(ends)
+        logging.debug("starts")
+        logging.debug(starts)
+        logging.debug("ends")
+        logging.debug(ends)
 
-            paths = calculate_BP_paths(branch_lengths, starts, ends, path_est)
+        paths = calculate_BP_paths(branch_lengths, starts, ends, path_est)
 
         tree, labelled_tree, count, epochs_created, parents = these_tts
 
@@ -141,161 +348,5 @@ def get_annotated_trees_and_timings(SS, pre_est, mid_est, post_est, tree_flexibi
     return annotated_trees_and_timings
 
 
-def find_non_parent_children(parents):
-    """
-    Find children that are not parents in the given parent-child relationship dictionary.
-
-    Args:
-        parents (dict): A dictionary with keys as child indices and values as their parent indices.
-
-    Returns:
-        set: A set of child indices that are not parents.
-    """
-    all_children = set(parents.keys())
-    all_parents = set(parents.values())
-    non_parent_children = all_children.difference(all_parents)
-    return non_parent_children
-
-
-
-def calculate_child_parent_diff(epochs_created: np.ndarray, parents: Dict, max_epoch: int):
-    """
-    Calculate the difference between child and parent epochs.
-
-    Args:
-        epochs_created (np.ndarray): A 2D numpy array containing the epochs when elements were created.
-        parents (Dict): A dictionary with keys as child indices and values as their parent indices.
-        epochs (int): The total number of epochs.
-
-    Returns:
-        np.ndarray: A 2D numpy array containing the difference between child and parent epochs.
-    """
-    assert isinstance(epochs_created, np.ndarray) and epochs_created.ndim == 2, f"epochs_created must be a 2D numpy array, but was {type(epochs_created)} with dimensions {epochs_created.ndim}. epochs_created: {str(epochs_created)}"
-
-    assert isinstance(parents, dict), f"parents must be a dictionary, but was {type(parents)}"
-    
-    branch_lengths = np.copy(epochs_created)
-    for child in parents: 
-        branch_lengths[:, parents[child]] = epochs_created[:, child] - epochs_created[:, parents[child]]
-
-    non_parent_children = find_non_parent_children(parents)
-    for column in non_parent_children:
-        branch_lengths[:, column] = max_epoch - epochs_created[:, column]
-        
-    return branch_lengths
-
-
-
-def extract_copy_numbers(tree):
-    CNs = [x for x in re.split("\(|\)|,|'", str(tree)) if x.isdigit()]
-    CNs = [int(x) for x in CNs]
-    return CNs
-
-
-def find_indices(list_to_check, item_to_find):
-    indices = [i for i, x in enumerate(list_to_check) if x == item_to_find]
-    return indices
-
-def stack_same_CN_branch_lengths(CNs, branch_lengths):
-    """
-    Stacks branch lengths of the same copy number state.
-
-    Arguments:
-    CNs -- a list of copy number states, matching the second dimension of branch_lengths.
-    branch_lengths -- a 2D array where the second dimension matches CNs.
-
-    Returns:
-    A 2D numpy array where branch lengths of the same copy number state have been stacked.
-    """
-    # Remove the first column
-    CNs = CNs[1:]
-    branch_lengths = branch_lengths[:, 1:]
-    unique_CNs = sorted(list(set(CNs)), reverse=True)
-
-    stacked_branch_lengths = []  # Initialize an empty list
-
-    for CN in unique_CNs:
-        indices = find_indices(CNs, CN)
-        new_stacked_branch_lengths = branch_lengths[:, indices].sum(axis=1)
-        stacked_branch_lengths.append(new_stacked_branch_lengths)
-
-    stacked_branch_lengths = np.vstack(stacked_branch_lengths).T
-
-    return stacked_branch_lengths, unique_CNs
-
-
-
-
-def get_path_code(code_list):
-    output = ""
-    count = 0
-
-    for code in code_list:
-        if code == "A":
-            count += 1
-        elif code == "GD":
-            output += str(count)
-            count = 0
-            output += "G"
-
-    output += str(count)
-    return output
-
-# Configure logging settings (you only need to do this once in your script or module)
-# this would be a good idea to use throughout the script
-
-
-
-
-
-
-
-
-
-def create_path(pre, mid, post):
-    path = []
-    if pre > 0:
-        path += ["A"] * pre
-    if mid > -1:
-        path += ["GD"]
-    if mid > 0:
-        path += ["A"] * mid
-    if post > -1:
-        path += ["GD"]
-    if post > 0:
-        path += ["A"] * post
-
-    return path
-
-
-def calculate_BP_paths(branch_lengths, starts, ends, path):
-    paths = np.zeros(ends.shape, dtype=object, order="C")
-
-    for row in range(branch_lengths.shape[0]):
-        for col in range(branch_lengths.shape[1]):
-
-            these_paths = path[starts[row][col] : ends[row][col]]  # MODIFIED THIS, BUT NOT ENTIRELY SURE, CHECK, ERROR
-            path_code = get_path_code(these_paths)
-
-            paths[row][col] = path_code
-
-    # this needs to be updated for paths with length longer than 1. 
-    # suppose a path was like GG1. The branching process can take this and calculate a probability, however when the SNV likelihood doe sthe same thing it gives an incompatible probability. 
-    # the SNV likelihood needs to know how long SNV can accumulate on a branch. for SNVs to accurately take iunto consideration of how lon g they can accumulate, the BP lieklihood needs to recognise this. 
-
-    # therefore GG1 really needs to look like p(GG1) = p(GD, GD) * p(D)^3 * 4 * p(L)
-    # this is not straightforward to program. How do we do it?
-    # furthermroe, how do we recognise it?
-    #
-
-    # first we recoginise this phenomenum as occuring to paths greater than length 1. all other paths naturally work.
-    # P(GG1 1 to 2 true) = P(GG1 1 to 1) * UA/(1-U-D)
-    # this works because there si always one chromosome where nothing happens to it. in the 1 to 1 caseA
-
-    # does this also work fro paths of length 1?
-    # yes if it is a non genome doubling one. 
-    # actually it always works unless the last epoch is a gd one. then it is just the usual. /calculate_BP_paths
-
-    return paths
 
 

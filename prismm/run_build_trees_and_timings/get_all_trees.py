@@ -1,3 +1,4 @@
+#DONE 
 import logging 
 import copy
 
@@ -433,7 +434,7 @@ def max_tree_depth(tree):
 
 def tree_in_bounds(tree, total_epochs_est, tree_flexibility):
     depth = max_tree_depth(tree)
-    # it is plus 1 here because the root node is a ficitonal node and the leaves don't HAVE to count
+    # it is plus 2 here because the root node is a ficitonal node and the leaves don't HAVE to count
     return depth >= total_epochs_est + 2 - tree_flexibility and depth <= total_epochs_est + 2
 
 

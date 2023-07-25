@@ -200,7 +200,7 @@ def get_timings_per_tree(tree: Tuple, total_epochs_est: int) -> Tuple[str, str, 
             )
 
         if epochs_created is None or np.any(epochs_created[:,label] == None):
-            return (None, None, None, None, None)
+            return {"tree":None, "labelled_tree":None, "label_count":None, "epochs_created":None, "parents":None}
 
     ensure_consistent_rows(
         epochs_created=epochs_created, 
@@ -210,7 +210,7 @@ def get_timings_per_tree(tree: Tuple, total_epochs_est: int) -> Tuple[str, str, 
     #logging.debug(epochs_created)
 
 
-    return (tree, labelled_tree, label_count, epochs_created, parents)
+    return {"tree":tree, "labelled_tree":labelled_tree, "label_count":label_count, "epochs_created":epochs_created, "parents":parents}
 
 def get_timings_per_chrom(all_trees: List[Tuple], total_epochs_est: int) -> List[Tuple[str, str, int, np.array, Dict[str, int]]]:
     """
@@ -232,7 +232,7 @@ def get_timings_per_chrom(all_trees: List[Tuple], total_epochs_est: int) -> List
     # Filter out trees with invalid epochs_created data
     chrom_trees_and_timings = [
         x for x in chrom_trees_and_timings 
-        if x[3] is not None and not None in x[3]
+        if x["epochs_created"] is not None and not None in x["epochs_created"]
     ]
 
     return chrom_trees_and_timings
@@ -257,8 +257,5 @@ def add_timings_to_trees(trees: Dict[str, List], total_epochs_est: int) -> Dict[
             all_trees = tree, 
             total_epochs_est = total_epochs_est
         )
-        
-        #logging.debug(f"Estimated total epochs for chromosome {chrom}: {total_epochs_est}")
-        #logging.debug(f"Trees and timings for chromosome {chrom}: {timings[chrom]}")
 
     return timings
