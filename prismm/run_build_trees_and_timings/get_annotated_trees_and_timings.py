@@ -4,6 +4,28 @@ from prismm.run_build_trees_and_timings.add_timings_to_trees import add_timings_
 import logging
 import numpy as np
 from typing import Dict
+import re
+
+def get_branch_lengths(trees_and_timings, max_epoch):
+    tree, labelled_tree, count, epochs_created, parents = trees_and_timings
+    branch_lengths = calculate_child_parent_diff(
+        epochs_created = epochs_created, 
+        parents = parents,
+        max_epoch = max_epoch
+    )
+    CNs = extract_copy_numbers(tree)
+    stacked_branch_lengths,unique_CNs = stack_same_CN_branch_lengths(CNs, branch_lengths)
+   
+    logging.debug("trees_and_timings")
+    logging.debug(str(trees_and_timings))
+    logging.debug("max_epoch")
+    logging.debug(max_epoch)
+    logging.debug("branch_lengths")
+    logging.debug(branch_lengths)
+    logging.debug("stacked_branch_lengths")
+    logging.debug(stacked_branch_lengths)
+
+    return CNs, unique_CNs, branch_lengths, stacked_branch_lengths
 
 def add_branch_lengths_to_timings_and_trees_per_chrom(trees_and_timings, pre_est, mid_est, post_est, total_epochs_est):
     logging.debug("trees_and_timings")
@@ -71,11 +93,11 @@ def add_branch_lengths_to_timings_and_trees(trees_and_timings, pre_est, mid_est,
 
     return all_structures
 
-import sys
-
 def get_annotated_trees_and_timings(SS, pre_est, mid_est, post_est, tree_flexibility):
 
     total_epochs_est = pre_mid_post_to_path_length(pre_est, mid_est, post_est)
+
+    logging.debug(f"pre_est, mid_est, post_est: {(pre_est, mid_est, post_est)}")
 
     #start_time_trees_and_timings = time.time()
     trees = get_all_trees(
@@ -86,7 +108,7 @@ def get_annotated_trees_and_timings(SS, pre_est, mid_est, post_est, tree_flexibi
     )
     logging.debug("got all the trees")
     for chrom in trees:
-        logging.debug(trees[chrom])
+        logging.debug(f"chrom:{chrom}, trees:{trees[chrom]}")
 
     trees_and_timings = add_timings_to_trees( 
         trees=trees,
@@ -95,9 +117,8 @@ def get_annotated_trees_and_timings(SS, pre_est, mid_est, post_est, tree_flexibi
 
     logging.debug("got all the timings too")
     for chrom in trees_and_timings:
-        logging.debug(trees_and_timings[chrom])
-        
-    sys.exit()
+        logging.debug(f"chrom:{chrom}, trees:{trees_and_timings[chrom]}")
+
     #end_time_trees_and_timings = time.time()
 
     #aggregated_execution_times["get_all_trees_and_timings"] += round(end_time_trees_and_timings - start_time_trees_and_timings, 2)
@@ -162,6 +183,8 @@ def calculate_child_parent_diff(epochs_created: np.ndarray, parents: Dict, max_e
         branch_lengths[:, column] = max_epoch - epochs_created[:, column]
         
     return branch_lengths
+
+
 
 def extract_copy_numbers(tree):
     CNs = [x for x in re.split("\(|\)|,|'", str(tree)) if x.isdigit()]

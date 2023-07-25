@@ -22,6 +22,58 @@ def get_best_struct(best_structure_indicies,best_structures):
     return(best_structure)
 
 
+def max_tree_depth(tree):
+    """
+    Calculate the maximum depth of a given tree.
+
+    The tree is represented as a tuple of nested tuples, where each inner tuple
+    represents a subtree. The depth of the tree is the length of the longest
+    path from the root to a leaf node.
+
+    Args:
+        tree (tuple): The tree to calculate the depth of.
+
+    Returns:
+        int: The maximum depth of the tree.
+    """
+    if not tree:
+        return 0
+
+    if not isinstance(tree, tuple):
+        raise ValueError("Invalid input. Tree must be a tuple of nested tuples.")
+
+    max_depth = 0
+    for subtree in tree[1:]:
+        depth = max_tree_depth(subtree)
+        max_depth = max(max_depth, depth)
+
+    return max_depth + 1
+
+def tree_in_bounds(tree,total_epochs,tree_flexibility):
+    # it is plus three because the root node is fictional, and the next two nodes have occured prior to the simulation and the leaf nodes don't need any SNVs
+    # ahh it should actually be 2 because the root node is fictional but either the next two nodes or the root node something needs to happen
+    depth = max_tree_depth(tree)
+    return depth >= total_epochs + 2 - tree_flexibility and depth <= total_epochs + 2
+
+def calculate_epochs(pre, mid, post):
+    """
+    Calculates the total number of epochs based on the provided pre, mid, and post values.
+
+    Args:
+        pre (int): The number of epochs in the pre-training stage. Should be non-negative.
+        mid (int): The number of epochs in the mid-training stage. Should be non-negative.
+        post (int): The number of epochs in the post-training stage. Should be non-negative.
+
+    Returns:
+        int: The total number of epochs.
+
+    Raises:
+        ValueError: If pre, mid, or post are negative.
+    """
+
+    epochs = pre + mid + post + 2
+    return epochs
+
 def are_all_chromosomes_viable_by_BP_likelihood(all_structures, tree_flexibility):
     """
     Check if all chromosomes have a viable tree.
@@ -40,7 +92,7 @@ def are_all_chromosomes_viable_by_BP_likelihood(all_structures, tree_flexibility
     return_val = True
 
     for chrom in all_structures:
-        tests = [tree_in_bounds(result["tree"], calculate_epochs(result["pre"],result["mid"],result["post"]) ,tree_flexibility) for result in all_structures[chrom]]
+        tests = [tree_in_bounds(result["tree"], calculate_epochs(result["pre_est"],result["mid_est"],result["post_est"]) ,tree_flexibility) for result in all_structures[chrom]]
         #tests = [max_tree_depth(result["tree"]) <= calculate_max_allowed_BP_depth(result["pre"], result["mid"], result["post"]) for result in all_structures[chrom]]
         if not any(tests):
             return_val = False

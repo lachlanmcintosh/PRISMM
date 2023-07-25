@@ -364,9 +364,9 @@ def generate_trees(observed_copy_numbers, SNV_CNs):
 def get_all_trees(observed_SNV_multiplicities, observed_copy_numbers, total_epochs_est, tree_flexibility):
     trees = {}
     for chrom in observed_SNV_multiplicities:
-        logging.debug(chrom)
-        logging.debug(observed_copy_numbers)
-        logging.debug(observed_SNV_multiplicities)
+        #logging.debug(chrom)
+        #logging.debug(observed_copy_numbers)
+        #logging.debug(observed_SNV_multiplicities)
 
         all_trees = generate_trees(
             observed_copy_numbers=observed_copy_numbers[chrom],

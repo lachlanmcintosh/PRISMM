@@ -80,7 +80,7 @@ def create_epochs_temp(epochs_created_row: np.ndarray,
 
         # Set the label column in the temporary array to a sequence from sequence_start to total_epochs_est
         epochs_created_temp[:, label] = list(range(sequence_start, total_epochs_est + 1))
-        logging.debug(f'epochs_created_temp:{epochs_created_temp}')
+        #logging.debug(f'epochs_created_temp:{epochs_created_temp}')
         return epochs_created_temp
 
     return None
@@ -128,11 +128,11 @@ def handle_other_nodes(epochs_created: np.ndarray,
         if parents_time is None:
             raise ValueError("Parent's time cannot be None.")
 
-        logging.debug(f'row:{row}')
-        logging.debug(f'total_epochs_est:{total_epochs_est}')
-        logging.debug(f'parent:{parent}')
-        logging.debug(f'parents_time:{parents_time}')
-        logging.debug(f'copynumber:{label_to_copy[label]}')
+        #logging.debug(f'row:{row}')
+        #logging.debug(f'total_epochs_est:{total_epochs_est}')
+        #logging.debug(f'parent:{parent}')
+        #logging.debug(f'parents_time:{parents_time}')
+        #logging.debug(f'copynumber:{label_to_copy[label]}')
 
         epochs_created_temp = create_epochs_temp(epochs_created_row = epochs_created[row], 
                                                     label = label, 
@@ -142,11 +142,11 @@ def handle_other_nodes(epochs_created: np.ndarray,
         if epochs_created_temp is None:
             continue
         #    return None
-        logging.debug(f'epochs_created_temp:{epochs_created_temp}')
+        #logging.debug(f'epochs_created_temp:{epochs_created_temp}')
 
         if row == 0:
             new_epochs_created = epochs_created_temp
-            logging.debug(f':new_epochs_created{new_epochs_created}')
+            #logging.debug(f':new_epochs_created{new_epochs_created}')
         else:
             new_epochs_created = np.vstack([new_epochs_created,epochs_created_temp])
 
@@ -165,11 +165,11 @@ def get_timings_per_tree(tree: Tuple, total_epochs_est: int) -> Tuple[str, str, 
         tuple: A tuple containing tree, labelled_tree, label_count, epochs_created, and parents.
     """
 
-    logging.debug("get_timings_per_tree")
+    #logging.debug("get_timings_per_tree")
 
     labelled_tree, label_count, parents, label_to_copy = label_tree(tree)
-    logging.debug("labelled_tree, label_count, parents, label_to_copy")
-    logging.debug((labelled_tree, label_count, parents, label_to_copy))
+    #logging.debug("labelled_tree, label_count, parents, label_to_copy")
+    #logging.debug((labelled_tree, label_count, parents, label_to_copy))
 
     zero_epoch_nodes = [key for key, value in parents.items() if value == 0]
 
@@ -187,10 +187,10 @@ def get_timings_per_tree(tree: Tuple, total_epochs_est: int) -> Tuple[str, str, 
         sibling = find_sibling(parents,label)
 
         if sibling < label:
-            logging.debug("insertion by copying sibling")
+            #logging.debug("insertion by copying sibling")
             epochs_created[:,label] = epochs_created[:,sibling]
         else:
-            logging.debug("insertion by finding all possible epochs")
+            #logging.debug("insertion by finding all possible epochs")
             epochs_created = handle_other_nodes(
                 epochs_created=epochs_created,
                 label_to_copy=label_to_copy,
@@ -206,13 +206,12 @@ def get_timings_per_tree(tree: Tuple, total_epochs_est: int) -> Tuple[str, str, 
         epochs_created=epochs_created, 
         parents=parents
     )
-    logging.debug("epochs_created")
-    logging.debug(epochs_created)
+    #logging.debug("epochs_created")
+    #logging.debug(epochs_created)
 
 
     return (tree, labelled_tree, label_count, epochs_created, parents)
 
-import sys
 def get_timings_per_chrom(all_trees: List[Tuple], total_epochs_est: int) -> List[Tuple[str, str, int, np.array, Dict[str, int]]]:
     """
     Get timings per chromosome for all trees.
@@ -231,11 +230,10 @@ def get_timings_per_chrom(all_trees: List[Tuple], total_epochs_est: int) -> List
     ]
 
     # Filter out trees with invalid epochs_created data
-    print(chrom_trees_and_timings)
-    #chrom_trees_and_timings = [
-    #    x for x in chrom_trees_and_timings 
-    #    if x[3] is not None and not None in x[3]
-    #]
+    chrom_trees_and_timings = [
+        x for x in chrom_trees_and_timings 
+        if x[3] is not None and not None in x[3]
+    ]
 
     return chrom_trees_and_timings
 
@@ -260,7 +258,7 @@ def add_timings_to_trees(trees: Dict[str, List], total_epochs_est: int) -> Dict[
             total_epochs_est = total_epochs_est
         )
         
-        logging.debug(f"Estimated total epochs for chromosome {chrom}: {total_epochs_est}")
-        logging.debug(f"Trees and timings for chromosome {chrom}: {timings[chrom]}")
+        #logging.debug(f"Estimated total epochs for chromosome {chrom}: {total_epochs_est}")
+        #logging.debug(f"Trees and timings for chromosome {chrom}: {timings[chrom]}")
 
     return timings
