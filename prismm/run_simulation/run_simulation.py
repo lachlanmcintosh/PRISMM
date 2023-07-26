@@ -50,32 +50,26 @@ def simulate_genome_and_summarise_observable_variables(args) -> Tuple[Dict, List
         assert sorted([copy_number_trees[chrom_type][1][0],copy_number_trees[chrom_type][2][0]]) == sorted(observed_copy_numbers[chrom_type])
 
     return simulated_chromosomes, phylogenetic_trees, copy_number_trees, observed_copy_numbers, observed_copy_number_multiplicities
+    
 
-
-def save_results_to_file(test_case: str, simulation_filename: str, simulated_chromosomes: Dict,
+def save_results_to_file(args, simulated_chromosomes: Dict,
                          phylogenetic_trees: List, copy_number_trees: List, observed_copy_numbers: Dict,
-                         observed_copy_number_multiplicities: Dict, pre: int, mid: int,
-                         post: int, p_up: float, p_down: float, rate: float) -> None:
+                         observed_copy_number_multiplicities: Dict) -> None:
     """
     Function to save the simulation results to a pickle file.
     """
 
-    file_name = SIMULATIONS_FILE_FOLDER / f'{simulation_filename}_{test_case}.pickle'
+    file_name = SIMULATIONS_FILE_FOLDER / f'{args.simulation_filename}_{args.test_case}.pickle'
     with file_name.open('wb') as f:
-        pickle.dump({
+        pickle.dump({"simulation": {
             'simulated_chromosomes': simulated_chromosomes,
             'phylogenetic_trees': phylogenetic_trees,
             'copy_number_trees': copy_number_trees,
             'observed_copy_numbers': observed_copy_numbers,
             'observed_copy_number_multiplicities': observed_copy_number_multiplicities,
-            'pre': pre,
-            'mid': mid,
-            'post': post,
-            'p_up': p_up,
-            'p_down': p_down,
-            'rate': rate
-        }, f)
-    logging.info(f"Results saved to file {file_name}")
+            'args': args
+        }}, f)
+    logging.info(f"Simulation saved to file {file_name}")
 
 def main(args) -> None:
     """
@@ -113,19 +107,12 @@ def main(args) -> None:
 
     # Save the results
     save_results_to_file(
-        test_case=args.test_case,
-        simulation_filename=args.simulation_filename,
+        args=args,
         simulated_chromosomes=simulated_chromosomes,
         phylogenetic_trees=phylogenetic_trees,
         copy_number_trees=copy_number_trees,
         observed_copy_numbers=observed_copy_numbers,
         observed_copy_number_multiplicities=observed_copy_number_multiplicities,
-        pre=args.pre,
-        mid=args.mid,
-        post=args.post,
-        p_up=args.p_up,
-        p_down=args.p_down,
-        rate=args.rate
     )
 
 

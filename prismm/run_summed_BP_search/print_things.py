@@ -5,7 +5,7 @@ from utils.path_codes import generate_path
 from prismm.run_summed_BP_search.count_higher_likelihood_paths import count_higher_likelihood_paths
 
 
-def print_path_likelihoods(likelihoods, searchable_likelihoods, marginal_likelihoods, top_likelihoods, default_paths, data):
+def print_path_likelihoods(likelihoods, searchable_likelihoods, marginal_likelihoods, top_likelihoods, default_paths, simulation):
     def print_dataframe_rows(df, label, path):
         path_in_df = any(df['path'] == path)
         if path_in_df:
@@ -15,10 +15,11 @@ def print_path_likelihoods(likelihoods, searchable_likelihoods, marginal_likelih
             logging.info(f"Path {path} not found in {label}")
             
     # Create the path using the data dictionary values for pre, mid, and post
-    path = generate_path(data['pre'], data['mid'], data['post'])
+    print(simulation.keys())
+    path = generate_path(simulation['args']['pre'], simulation['args']['mid'], simulation['args']['post'])
     
     # Print the pre, mid, and post values and the generated path
-    logging.info(f"pre: {data['pre']}, mid: {data['mid']}, post: {data['post']} => path: {path}")
+    logging.info(f"pre: {simulation['pre']}, mid: {simulation['mid']}, post: {simulation['post']} => path: {path}")
     
     # Print the likelihood row for that path
     path_in_likelihoods = any(likelihoods['path'] == path)
@@ -53,8 +54,8 @@ def print_path_likelihoods(likelihoods, searchable_likelihoods, marginal_likelih
 
 
 
-def pretty_print_data(data):
-    for key, value in data.items():
+def pretty_print_simulation(simulation):
+    for key, value in simulation.items():
         pretty_print(key)
         pretty_print(value)
 

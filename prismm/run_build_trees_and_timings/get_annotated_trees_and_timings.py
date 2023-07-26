@@ -7,14 +7,14 @@ import numpy as np
 from typing import Dict, List, Tuple, Any
 import re
 
-def calculate_branch_lengths(epochs_created: np.ndarray, parents: Dict[int, int], max_epoch: int) -> np.ndarray:
+def calculate_branch_lengths(epochs_created: np.ndarray, parents: Dict[int, int], total_epochs_est: int) -> np.ndarray:
     """
     Calculate the difference between child and parent epochs.
 
     Args:
         epochs_created (np.ndarray): A 2D numpy array containing the epochs when elements were created.
         parents (Dict[int, int]): A dictionary with keys as child indices and values as their parent indices.
-        max_epoch (int): The total number of epochs.
+        total_epochs_est (int): The total number of epochs.
 
     Returns:
         np.ndarray: A 2D numpy array containing the difference between child and parent epochs.
@@ -39,7 +39,7 @@ def calculate_branch_lengths(epochs_created: np.ndarray, parents: Dict[int, int]
         branch_lengths[:, parents[child]] = epochs_created[:, child] - epochs_created[:, parents[child]]
 
     for leaf in leaf_nodes:
-        branch_lengths[:, leaf] = max_epoch - epochs_created[:, leaf]
+        branch_lengths[:, leaf] = total_epochs_est - epochs_created[:, leaf]
         
     return branch_lengths
 
@@ -120,13 +120,13 @@ def stack_same_CN_branch_lengths(copy_numbers: List[int], branch_lengths: np.nda
 
     return stacked_branch_lengths, unique_copy_numbers
 
-def get_branch_lengths(tts: Dict[str, Any], max_epoch: int) -> Dict[str, Any]:
+def get_branch_lengths(tts: Dict[str, Any], total_epochs_est: int) -> Dict[str, Any]:
     """
     Calculate branch lengths, extract copy numbers, stack branch lengths of the same copy number state, and find unique copy numbers.
     
     Args:
         tts (Dict[str, Any]): A dictionary containing 'epochs_created', 'parents', and 'tree' as keys.
-        max_epoch (int): The total number of epochs.
+        total_epochs_est (int): The total number of epochs.
 
     Returns:
         Dict[str, Any]: The updated dictionary with added 'branch_lengths', 'CNs', 'stacked_branch_lengths', and 'unique_CNs'.
@@ -136,14 +136,14 @@ def get_branch_lengths(tts: Dict[str, Any], max_epoch: int) -> Dict[str, Any]:
         logging.error(f"tts must be a dictionary, but was {type(tts)}")
         return None
 
-    if not isinstance(max_epoch, int) or max_epoch < 0:
-        logging.error(f"max_epoch must be a non-negative integer, but was {type(max_epoch)} with value {max_epoch}")
+    if not isinstance(total_epochs_est, int) or total_epochs_est < 0:
+        logging.error(f"total_epochs_est must be a non-negative integer, but was {type(total_epochs_est)} with value {total_epochs_est}")
         return None
 
     tts["branch_lengths"] = calculate_branch_lengths(
         epochs_created=tts.get("epochs_created"), 
         parents=tts.get("parents"),
-        max_epoch=max_epoch
+        total_epochs_est=total_epochs_est
     )
     
     if tts["branch_lengths"] is None:
@@ -158,8 +158,6 @@ def get_branch_lengths(tts: Dict[str, Any], max_epoch: int) -> Dict[str, Any]:
 
     tts["stacked_branch_lengths"] = stacked_branch_lengths
     tts["unique_CNs"] = unique_CNs
-    
-    return tts
 
 
 def generate_path_code(path: List[str]) -> str:
@@ -234,13 +232,7 @@ def calculate_branch_process_paths(branch_lengths: np.ndarray, starts: np.ndarra
 # actually it always works unless the last epoch is a gd one. then it is just the usual. /calculate_BP_paths
 
 
-asdf
-
-
-
-
-
-
+import sys
 def add_branch_lengths_to_timings_and_trees_per_chrom(trees_and_timings, pre_est, mid_est, post_est, total_epochs_est):
     logging.debug("trees_and_timings")
     logging.debug(trees_and_timings)
@@ -248,7 +240,9 @@ def add_branch_lengths_to_timings_and_trees_per_chrom(trees_and_timings, pre_est
     for these_tts in trees_and_timings: 
 
         # trace back to here, asdfasdf
-        CNs, unique_CNs, branch_lengths, stacked_branch_lengths = get_branch_lengths(trees_and_timings=these_tts, max_epoch=total_epochs_est)
+        get_branch_lengths(tts=these_tts, total_epochs_est=total_epochs_est)
+        print(these_tts.keys())
+
 
         path_est = create_path(pre_est, mid_est, post_est)
 
@@ -300,26 +294,26 @@ def add_branch_lengths_to_timings_and_trees(trees_and_timings, pre_est, mid_est,
 
     return all_structures
 
-def get_annotated_trees_and_timings(SS, pre_est, mid_est, post_est, tree_flexibility):
-
-    total_epochs_est = pre_mid_post_to_path_length(pre_est, mid_est, post_est)
+def get_annotated_trees_and_timings(observed_SNV_multiplicities, observed_copy_numbers, pre_est, mid_est, post_est, tree_flexibility):
 
     logging.debug(f"pre_est, mid_est, post_est: {(pre_est, mid_est, post_est)}")
 
     #start_time_trees_and_timings = time.time()
     trees = get_all_trees(
-        observed_SNV_multiplicities=SS["observed_SNV_multiplicities"],
-        observed_copy_numbers=SS["observed_copy_numbers"],
-        total_epochs_est=total_epochs_est,
+        observed_SNV_multiplicities=observed_SNV_multiplicities,
+        observed_copy_numbers=observed_copy_numbers,
+        pre_est=pre_est, 
+        mid_est=mid_est, 
+        post_est=post_est,
         tree_flexibility=tree_flexibility
     )
+    
     logging.debug("got all the trees")
     for chrom in trees:
         logging.debug(f"chrom:{chrom}, trees:{trees[chrom]}")
 
     trees_and_timings = add_timings_to_trees( 
-        trees=trees,
-        total_epochs_est=total_epochs_est
+        trees=trees
     )
 
     logging.debug("got all the timings too")

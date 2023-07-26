@@ -1,6 +1,7 @@
 #DONE 
 import logging 
 import copy
+from prismm.utils.path_codes import pre_mid_post_to_path_length
 
 ##### STEP 4; now we have SNV counts, make all possible trees that could explain those SNV counts for the given epoch structure “(pre,mid, post)”
 
@@ -360,50 +361,41 @@ def generate_trees(observed_copy_numbers, SNV_CNs):
     trees = sorted([sort_tree(tree) for tree in trees])
     return trees
 
+def generate_and_filter_trees(chrom, trees):
+    this_chroms_trees = generate_trees(
+        observed_copy_numbers=trees["data"][chrom]["observed_SNV_multiplicities"],
+        SNV_CNs=list(trees["data"][chrom]["observed_copy_numbers"].keys())
+    )
 
+    return [
+        tree for tree in this_chroms_trees
+        if tree_in_bounds(tree=tree,
+                          total_epochs_est=trees["metadata"]["total_epoch_est"],
+                          tree_flexibility=trees["metadata"]["tree_flexibility"])
+    ]
 
-def get_all_trees(observed_SNV_multiplicities, observed_copy_numbers, total_epochs_est, tree_flexibility):
-    trees = {}
+def get_all_trees(observed_SNV_multiplicities, observed_copy_numbers, pre_est, mid_est, post_est, tree_flexibility):
+    tts = {}
+    
+    total_epochs_est = pre_mid_post_to_path_length(pre=pre_est, mid=mid_est, post=post_est)
+
+    tts["metadata"] = {
+        "pre_est": pre_est, 
+        "mid_est": mid_est, 
+        "post_est": post_est, 
+        "total_epochs_est": total_epochs_est, 
+        "tree_flexibility": tree_flexibility
+        }
+    
+    tts["results"] = {int(x):{} for x in range(23)}
+
     for chrom in observed_SNV_multiplicities:
-        #logging.debug(chrom)
-        #logging.debug(observed_copy_numbers)
-        #logging.debug(observed_SNV_multiplicities)
+        tts["results"][chrom]["observed_SNV_multiplicities"] = observed_SNV_multiplicities
+        tts["results"][chrom]["observed_copy_numbers"] = observed_copy_numbers
+        tts["results"][chrom]["trees"] = generate_and_filter_trees(chrom, tts)
 
-        all_trees = generate_trees(
-            observed_copy_numbers=observed_copy_numbers[chrom],
-            SNV_CNs=list(observed_SNV_multiplicities[chrom].keys())
-        )
-        trees_to_keep = []
-        for tree in all_trees:
-            depth = max_tree_depth(tree)
-            if tree_in_bounds(tree=tree,
-                              total_epochs_est=total_epochs_est,
-                              tree_flexibility=tree_flexibility):
-                trees_to_keep.append(tree)
-        trees[chrom] = copy.deepcopy(trees_to_keep)
+    return tts
 
-        # check there is a tree and explain why:
-        if len(trees_to_keep) == 0:
-            results = all_trees
-            logging.info("%s", results)
-            for result in results:
-                logging.debug("%s", max_tree_depth(result))
-
-            logging.info("trees are of length 0")
-            tests = [tree_in_bounds(tree=tree,
-                                    total_epochs_est=total_epochs_est,
-                                    tree_flexibility=tree_flexibility) for tree in all_trees]
-            logging.info("tests %s", tests)
-            logging.info("any tests %s", any(tests))
-            logging.info("chrom %s", chrom)
-            logging.info("trees %s", all_trees)
-            logging.info("max_tree_depth %s", [max_tree_depth(tree) for tree in all_trees])
-            logging.info("bounds %s", (total_epochs_est +2  - tree_flexibility,total_epochs_est + 2))
-            logging.info("total_epochs %s", total_epochs_est)
-
-            return None
-
-    return trees
 
 def max_tree_depth(tree):
     """

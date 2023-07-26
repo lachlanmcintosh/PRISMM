@@ -85,8 +85,6 @@ def get_tree_and_rate_parameters(res, SEARCH_DEPTH, SS):
         p_down = int(SS["searchable_likelihoods"]['p_down'].iloc[res])
         pre, mid, post = path_code_to_pre_mid_post(path)
 
-
-
     for x in [pre, mid, post, p_up, p_down]:
         assert isinstance(x, (int, np.integer)), f"Expected integer, but got {x} of type {type(x)}."
 
@@ -212,7 +210,7 @@ def handle_errors(all_structures):
 
 
 
-
+import sys
 def find_solutions(SS, p_window, plambda_window, tree_flexibility, alpha):
     SS["observed_SNV_multiplicities"] = count_SNV_multiplicities(SS['simulated_chromosomes'])
     SEARCH_DEPTH = len(SS['searchable_likelihoods'])
@@ -231,7 +229,8 @@ def find_solutions(SS, p_window, plambda_window, tree_flexibility, alpha):
         path_est, p_up_start, p_down_start, pre_est, mid_est, post_est = get_tree_and_rate_parameters(res, SEARCH_DEPTH, SS)
         print_results(res, path_est, p_up_start, p_down_start, pre_est, mid_est, post_est)
 
-        annotated_trees_and_timings = get_annotated_trees_and_timings(SS=SS, 
+        annotated_trees_and_timings = get_annotated_trees_and_timings(observed_SNV_multiplicities=SS["observed_SNV_multiplicities"],
+                                                                      observed_copy_numbers=SS["observed_copy_numbers"],
                                                                       pre_est=pre_est, 
                                                                       mid_est=mid_est, 
                                                                       post_est=post_est, 

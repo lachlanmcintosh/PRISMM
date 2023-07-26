@@ -178,8 +178,8 @@ def get_timings_per_tree(tree: Tuple, total_epochs_est: int) -> Tuple[str, str, 
         zero_epoch_nodes = zero_epoch_nodes) 
 
     if label_count == 2:
-        return (tree, labelled_tree, label_count, epochs_created, parents)
-
+        return {"tree":tree, "labelled_tree":labelled_tree, "label_count":label_count, "epochs_created":epochs_created, "parents":parents}
+    
     for label in range(1, label_count + 1):
         if label in zero_epoch_nodes:
             continue
@@ -230,6 +230,7 @@ def get_timings_per_chrom(all_trees: List[Tuple], total_epochs_est: int) -> List
     ]
 
     # Filter out trees with invalid epochs_created data
+    print(chrom_trees_and_timings)
     chrom_trees_and_timings = [
         x for x in chrom_trees_and_timings 
         if x["epochs_created"] is not None and not None in x["epochs_created"]
