@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import re
 from typing import Dict
-from utils.FILES import PRECOMPUTED_FILE_FOLDER
+from prismm.utils.FILES import PRECOMPUTED_FILE_FOLDER
 
 def calculate_likelihoods(all_data, observed_copy_number_multiplicities):
     observed_copy_number_multiplicities_str = {

@@ -12,9 +12,10 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'rs=prism.run_simulation.run_simulation:main',
-            'rsio=prism.run_simulation.run_simulation_IO:main',
-            'do_all2=prism.do_all2:main',
+            #'rs=prismm.run_simulation.run_simulation:main',
+            #'rsio=prismm.run_simulation.run_simulation_IO:main',
+            #'do_all2=prismm.do_all2:main',
+            'rsia=prismm.do_simulation_inference_analysis:main'
         ],
     },
 )

@@ -1,7 +1,7 @@
 import json
 import logging
-from utils.pretty_print import pretty_print
-from utils.path_codes import generate_path
+from prismm.utils.pretty_print import pretty_print
+from prismm.utils.path_codes import generate_path
 from prismm.run_summed_BP_search.count_higher_likelihood_paths import count_higher_likelihood_paths
 
 
@@ -16,10 +16,10 @@ def print_path_likelihoods(likelihoods, searchable_likelihoods, marginal_likelih
             
     # Create the path using the data dictionary values for pre, mid, and post
     print(simulation.keys())
-    path = generate_path(simulation['args']['pre'], simulation['args']['mid'], simulation['args']['post'])
+    path = generate_path(simulation['args'].pre, simulation['args'].mid, simulation['args'].post)
     
     # Print the pre, mid, and post values and the generated path
-    logging.info(f"pre: {simulation['pre']}, mid: {simulation['mid']}, post: {simulation['post']} => path: {path}")
+    logging.info(f"pre: {simulation['args'].pre}, mid: {simulation['args'].mid}, post: {simulation['args'].post} => path: {path}")
     
     # Print the likelihood row for that path
     path_in_likelihoods = any(likelihoods['path'] == path)

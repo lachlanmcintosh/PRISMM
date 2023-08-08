@@ -73,16 +73,16 @@ def initial_rate_estimate(pre, mid, post, SS):
 
 def get_tree_and_rate_parameters(res, SEARCH_DEPTH, SS):
     if res == SEARCH_DEPTH:
-        p_up = int(SS["p_up"] * 100)
-        p_down = int(SS["p_down"] * 100)
-        pre = SS["pre"]
-        mid = SS["mid"]
-        post = SS["post"]
+        p_up = int(SS["simulation"]["p_up"] * 100)
+        p_down = int(SS["simulation"]["p_down"] * 100)
+        pre = SS["simulation"]["pre"]
+        mid = SS["simulation"]["mid"]
+        post = SS["simulation"]["post"]
         path = generate_path(pre, mid, post)
     else:
-        path = SS["searchable_likelihoods"]["path"].iloc[res]
-        p_up = int(SS["searchable_likelihoods"]['p_up'].iloc[res])
-        p_down = int(SS["searchable_likelihoods"]['p_down'].iloc[res])
+        path = SS["CN_solutions"]["searchable_likelihoods"]["path"].iloc[res]
+        p_up = int(SS["CN_solutions"]["searchable_likelihoods"]['p_up'].iloc[res])
+        p_down = int(SS["CN_solutions"]["searchable_likelihoods"]['p_down'].iloc[res])
         pre, mid, post = path_code_to_pre_mid_post(path)
 
     for x in [pre, mid, post, p_up, p_down]:
@@ -212,8 +212,10 @@ def handle_errors(all_structures):
 
 import sys
 def find_solutions(SS, p_window, plambda_window, tree_flexibility, alpha):
-    SS["observed_SNV_multiplicities"] = count_SNV_multiplicities(SS['simulated_chromosomes'])
-    SEARCH_DEPTH = len(SS['searchable_likelihoods'])
+    print(SS.keys())
+    SS["SNV_solutions"] = {}
+    SS["SNV_solutions"]["observed_SNV_multiplicities"] = count_SNV_multiplicities(SS["simulation"]['simulated_chromosomes'])
+    SEARCH_DEPTH = len(SS["CN_solutions"]['searchable_likelihoods'])
     results = []
 
     aggregated_execution_times = {
@@ -229,8 +231,8 @@ def find_solutions(SS, p_window, plambda_window, tree_flexibility, alpha):
         path_est, p_up_start, p_down_start, pre_est, mid_est, post_est = get_tree_and_rate_parameters(res, SEARCH_DEPTH, SS)
         print_results(res, path_est, p_up_start, p_down_start, pre_est, mid_est, post_est)
 
-        annotated_trees_and_timings = get_annotated_trees_and_timings(observed_SNV_multiplicities=SS["observed_SNV_multiplicities"],
-                                                                      observed_copy_numbers=SS["observed_copy_numbers"],
+        annotated_trees_and_timings = get_annotated_trees_and_timings(observed_SNV_multiplicities=SS["SNV_solutions"]["observed_SNV_multiplicities"],
+                                                                      observed_copy_numbers=SS["simulation"]["observed_copy_numbers"],
                                                                       pre_est=pre_est, 
                                                                       mid_est=mid_est, 
                                                                       post_est=post_est, 

@@ -21,6 +21,7 @@ def load_simulation_and_compute_likelihoods(args, default_paths):
     simulation = load_results_from_file(test_case=args.test_case, simulation_name=args.simulation_filename)
     pretty_print_simulation(simulation=simulation)
     likelihoods = CN_multiplicities_to_likelihoods(observed_copy_number_multiplicities=simulation['observed_copy_number_multiplicities'])
+    continuous_likelihoods = CN_multiplicities_to_likelihoods(observed_copy_number_multiplicities=simulation['observed_copy_number_multiplicities'])
     computed_likelihoods = compute_likelihoods(
         likelihoods=likelihoods,
         max_number_of_solutions=args.max_number_of_solutions,

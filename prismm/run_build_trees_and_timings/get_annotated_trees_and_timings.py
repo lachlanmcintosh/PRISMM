@@ -2,6 +2,8 @@ from prismm.utils.path_codes import pre_mid_post_to_path_length
 from prismm.run_build_trees_and_timings.get_all_trees import get_all_trees
 from prismm.run_build_trees_and_timings.add_timings_to_trees import add_timings_to_trees
 from prismm.utils.path_codes import create_path
+from prismm.utils.total_epochs import total_epochs
+
 import logging
 import numpy as np
 from typing import Dict, List, Tuple, Any
@@ -248,7 +250,7 @@ def add_branch_lengths_to_timings_and_trees_per_chrom(trees_and_timings, pre_est
 
         logging.debug(path_est)
 
-        starts = these_tts[3] #+1
+        starts = these_tts["epochs_created"]
         ends = these_tts[3] + branch_lengths #+1
 
         logging.debug("starts")
@@ -297,7 +299,7 @@ def add_branch_lengths_to_timings_and_trees(trees_and_timings, pre_est, mid_est,
 def get_annotated_trees_and_timings(observed_SNV_multiplicities, observed_copy_numbers, pre_est, mid_est, post_est, tree_flexibility):
 
     logging.debug(f"pre_est, mid_est, post_est: {(pre_est, mid_est, post_est)}")
-
+    total_epochs_est = total_epochs(pre_est,mid_est,post_est)
     #start_time_trees_and_timings = time.time()
     trees = get_all_trees(
         observed_SNV_multiplicities=observed_SNV_multiplicities,
@@ -313,7 +315,8 @@ def get_annotated_trees_and_timings(observed_SNV_multiplicities, observed_copy_n
         logging.debug(f"chrom:{chrom}, trees:{trees[chrom]}")
 
     trees_and_timings = add_timings_to_trees( 
-        trees=trees
+        trees=trees,
+        total_epochs_est=total_epochs_est
     )
 
     logging.debug("got all the timings too")

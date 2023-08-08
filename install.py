@@ -1,4 +1,3 @@
-#!/stornext/Home/data/allstaff/l/lmcintosh/mambaforge/bin/python
 
 import subprocess
 import sys
@@ -20,5 +19,6 @@ def execute_cmd(cmd):
 # Uninstall the existing package
 print(execute_cmd([sys.executable, '-m', 'pip', 'uninstall', '-y', pkg]))
 
-# Install the package
-print(execute_cmd([sys.executable, '-m', 'pip', 'install', '--ignore-installed', '.']))
+# Install the package in editable mode
+print(execute_cmd([sys.executable, '-m', 'pip', 'install', '-e', '.']))
+

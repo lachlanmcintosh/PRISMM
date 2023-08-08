@@ -252,7 +252,8 @@ def add_timings_to_trees(trees: Dict[str, List], total_epochs_est: int) -> Dict[
 
     timings = {}
 
-    for chrom, tree in trees.items():
+    for chrom, dd in trees['results'].items():
+        tree = dd["trees"]
         assert isinstance(tree, list)
         timings[chrom] = get_timings_per_chrom(
             all_trees = tree, 

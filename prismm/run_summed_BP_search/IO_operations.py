@@ -1,4 +1,4 @@
-from utils.FILES import SIMULATIONS_FILE_FOLDER
+from prismm.utils.FILES import SIMULATIONS_FILE_FOLDER
 import pickle
 import os
 

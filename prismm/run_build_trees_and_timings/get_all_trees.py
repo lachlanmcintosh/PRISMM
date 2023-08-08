@@ -363,14 +363,14 @@ def generate_trees(observed_copy_numbers, SNV_CNs):
 
 def generate_and_filter_trees(chrom, trees):
     this_chroms_trees = generate_trees(
-        observed_copy_numbers=trees["data"][chrom]["observed_SNV_multiplicities"],
-        SNV_CNs=list(trees["data"][chrom]["observed_copy_numbers"].keys())
+        observed_copy_numbers=trees["results"][chrom]["observed_copy_numbers"],
+        SNV_CNs=trees["results"][chrom]["observed_SNV_copy_numbers"],
     )
 
     return [
         tree for tree in this_chroms_trees
         if tree_in_bounds(tree=tree,
-                          total_epochs_est=trees["metadata"]["total_epoch_est"],
+                          total_epochs_est=trees["metadata"]["total_epochs_est"],
                           tree_flexibility=trees["metadata"]["tree_flexibility"])
     ]
 
@@ -390,8 +390,8 @@ def get_all_trees(observed_SNV_multiplicities, observed_copy_numbers, pre_est, m
     tts["results"] = {int(x):{} for x in range(23)}
 
     for chrom in observed_SNV_multiplicities:
-        tts["results"][chrom]["observed_SNV_multiplicities"] = observed_SNV_multiplicities
-        tts["results"][chrom]["observed_copy_numbers"] = observed_copy_numbers
+        tts["results"][chrom]["observed_SNV_copy_numbers"] = list(observed_SNV_multiplicities[chrom].keys())
+        tts["results"][chrom]["observed_copy_numbers"] = observed_copy_numbers[chrom]
         tts["results"][chrom]["trees"] = generate_and_filter_trees(chrom, tts)
 
     return tts
