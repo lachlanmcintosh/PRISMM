@@ -24,10 +24,10 @@ def initialize_epochs_created(num_labels, zero_epoch_nodes):
 
     # create a 2D numpy array with the shape (1, num_labels) and fill with the value None.
     epochs_created = np.full((1, num_labels), None)
-    epochs_created[0, 0] = 0
+    epochs_created[0, 0] = -1 # this node doesn't actually exist
 
     for label in zero_epoch_nodes:
-        epochs_created[0, label] = 1
+        epochs_created[0, label] = 0
 
     assert epochs_created.shape[0] == 1
 

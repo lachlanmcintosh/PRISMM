@@ -26,6 +26,8 @@ def calculate_branch_lengths(epochs_created: np.ndarray, parents: Dict[int, int]
     if not isinstance(epochs_created, np.ndarray) or epochs_created.ndim != 2:
         logging.error(f"epochs_created must be a 2D numpy array, but was {type(epochs_created)} with dimensions {epochs_created.ndim}. epochs_created: {str(epochs_created)}")
         return None
+    
+    assert np.max(epochs_created) <= total_epochs_est
 
     if not isinstance(parents, dict):
         logging.error(f"parents must be a dictionary, but was {type(parents)}")
@@ -189,7 +191,7 @@ def generate_path_code(path: List[str]) -> str:
     return path_code
 
 
-def calculate_branch_process_paths(branch_lengths: np.ndarray, starts: np.ndarray, ends: np.ndarray, path: List[str]) -> np.ndarray:
+def calculate_branching_process_paths(branch_lengths: np.ndarray, starts: np.ndarray, ends: np.ndarray, path: List[str]) -> np.ndarray:
     """
     This function calculates the paths in a branching process.
 
@@ -251,31 +253,35 @@ def add_branch_lengths_to_timings_and_trees_per_chrom(trees_and_timings, pre_est
         logging.debug(path_est)
 
         starts = these_tts["epochs_created"]
-        ends = these_tts[3] + branch_lengths #+1
+        branch_lengths = these_tts["branch_lengths"]
+        ends = these_tts["epochs_created"] + branch_lengths
 
         logging.debug("starts")
         logging.debug(starts)
         logging.debug("ends")
         logging.debug(ends)
 
-        paths = calculate_BP_paths(branch_lengths, starts, ends, path_est)
+        paths = calculate_branching_process_paths(branch_lengths=branch_lengths, 
+                                                  starts=starts, 
+                                                  ends=ends, 
+                                                  path=path_est)
 
-        tree, labelled_tree, count, epochs_created, parents = these_tts
+        # tree, labelled_tree, count, epochs_created, parents = these_tts
 
         all_structures += [{
             "pre_est": pre_est,
             "mid_est": mid_est,
             "post_est": post_est,
             "path_est": path_est,
-            "tree": tree,
-            "parents": parents,
-            "labelled_tree": labelled_tree,
-            "count": count,
-            "epochs_created": epochs_created,
-            "CNs": CNs,
+            "tree": these_tts["tree"],
+            "parents": these_tts["parents"],
+            "labelled_tree": these_tts["labelled_tree"],
+            "label_count":these_tts["label_count"],
+            "epochs_created": these_tts["epochs_created"],
+            "CNs": these_tts["CNs"],
             "branch_lengths": branch_lengths,
-            "unique_CNs": unique_CNs,
-            "stacked_branch_lengths": stacked_branch_lengths,
+            "unique_CNs": these_tts["unique_CNs"],
+            "stacked_branch_lengths": these_tts["stacked_branch_lengths"],
             "starts":starts,
             "ends":ends,
             "paths":paths
