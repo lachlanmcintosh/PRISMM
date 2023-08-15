@@ -4,12 +4,13 @@ import subprocess
 import time
 import os
 import sys
+import math
 
 def write_sbatch_script(cmd, detailed_job_name, max_path_length):
     """Create an sbatch script file and return its name."""
     slurm_dir = "slurm"
     os.makedirs(slurm_dir, exist_ok=True)  # make sure the directory exists
-    mem_in_gb = 2 ** (max_path_length - 6) * 1
+    mem_in_gb = math.ceil(2 ** (max_path_length - 6) * 1)
     print(mem_in_gb)
 
     script_content = (
@@ -37,6 +38,21 @@ def run_cmd_with_sbatch(cmd, detailed_job_name, max_path_length):
     job_id = result.stdout.strip()
     print(f"Job submitted successfully with job ID: {job_id}")
     return job_id
+
+def run_cmd_with_sbatch(cmd, detailed_job_name, max_path_length):
+    """Run a command using sbatch and return the job ID."""
+    sbatch_script = write_sbatch_script(cmd, detailed_job_name, max_path_length)  # <-- Pass the max_path_length
+    print(f"\nSubmitting job with script '{sbatch_script}'")
+    result = subprocess.run(["sbatch", "--parsable", sbatch_script], capture_output=True, text=True)
+    if result.returncode != 0:  # check if the sbatch command failed
+        print(f"Error submitting job with script '{sbatch_script}'. Error: {result.stderr}")
+        return None
+    job_id = result.stdout.strip()
+    print(f"The result is {result}")
+
+    print(f"Job submitted successfully with job ID: {job_id}")
+    return job_id
+
 
 
 def generate_path_likelihoods(p_up, p_down, max_CN, max_path_length, path_description):
@@ -87,16 +103,22 @@ if __name__ == "__main__":
     path_description = f"p{max_path_length}_v5"
 
     # Run the preliminary functions
+    path_description = f"p{max_path_length}_v5"
 
-    # Submit the preliminary functions and get their job IDs
-    job_id1 = run_cmd_with_sbatch(f"./generate_all_path_combinations_for_given_length.sh {max_path_length}",
-                                  f"generate_all_path_combinations_{max_path_length}", max_path_length)
-    job_id3 = run_cmd_with_sbatch(f"./create_one_step_genome_doubling_markov_matrix.sh {max_path_length}",
-                                  f"create_one_step_genome_doubling_markov_matrix_{max_path_length}", max_path_length)
+    all_path_combinations_file = os.path.join("MATRICES", path_description, "all_path_combinations.sobj")
+    gd_file = os.path.join("MATRICES", path_description, "GD.sobj")
 
-    # Now, wait for these jobs to finish
-    #wait_for_job(job_id1, f"generate_all_path_combinations_{max_path_length}")
-    #wait_for_job(job_id3, f"create_one_step_genome_doubling_markov_matrix_{max_path_length}")
+    # Check if files exist and, if not, run the respective jobs
+    if not os.path.exists(all_path_combinations_file):
+        job_id1 = run_cmd_with_sbatch(f"./generate_all_path_combinations_for_given_length.sh {max_path_length}",
+                                      f"generate_all_path_combinations_{max_path_length}", max_path_length)
+        wait_for_job(job_id1, f"generate_all_path_combinations_{max_path_length}")
+
+    if not os.path.exists(gd_file):
+        job_id3 = run_cmd_with_sbatch(f"./create_one_step_genome_doubling_markov_matrix.sh {max_path_length}",
+                                      f"create_one_step_genome_doubling_markov_matrix_{max_path_length}", max_path_length)
+        wait_for_job(job_id3, f"create_one_step_genome_doubling_markov_matrix_{max_path_length}")
+
 
     job_ids = []  # list to collect job IDs
     submission_counter = 0  # Counter to keep track of submissions since the last check
@@ -113,7 +135,8 @@ if __name__ == "__main__":
 
 
                     table_file = f"MATRICES/{path_description}/table_u{p_up_rounded:.2f}_d{p_down_rounded:.2f}.csv"
-                    file_prefix_to_delete = f"MATRICES/{path_description}/subbed_u{p_up_rounded:.2f}_d{p_down_rounded:.2f}"
+                    file_prefix_to_delete = f"subbed_mat_u{p_up_rounded:.2f}_d{p_down_rounded:.2f}"
+
 
                     # Check if the table file exists and count its lines
                     if os.path.exists(table_file):
@@ -126,10 +149,12 @@ if __name__ == "__main__":
                         print(f"Table file {table_file} does not exist.")
 
                     # If the execution reaches here, it means there's a mismatch. Delete relevant files and resubmit the job.
-                    files_to_delete = [f for f in os.listdir(f"MATRICES/{path_description}/") if f.startswith(file_prefix_to_delete)]
+                    files_to_delete = [f for f in glob.glob(f"MATRICES/{path_description}/{file_prefix_to_delete}*")]
 
                     for file in files_to_delete:
-                        os.remove(os.path.join(f"MATRICES/{path_description}/", file))
+                        print(f"Deleting file: {file}")
+                        os.remove(file)
+
 
                     job_id = generate_path_likelihoods(p_up_rounded, p_down_rounded, max_CN, max_path_length, path_description)
                     job_ids.append((job_id, p_up_rounded, p_down_rounded))
@@ -137,7 +162,6 @@ if __name__ == "__main__":
 
                     # Check the running jobs count every 50 submissions
                     if submission_counter == 50:
-                        sys.exit()
                         # If there are 500 jobs running, pause and wait until there's room
                         while get_running_jobs_count() >= max_jobs:
                             print(f"At least {max_jobs} jobs are currently running. Waiting for room to submit more...")
@@ -147,6 +171,3 @@ if __name__ == "__main__":
     # Wait for the remaining jobs to finish after all jobs have been submitted
     for job_id, p_up, p_down in job_ids:
         wait_for_job(job_id, f"generate_path_likelihoods_{p_up}_{p_down}")
-
-    # Check if all files exist
-    os.system(f"python check_all_files_exist.py {max_path_length}")
