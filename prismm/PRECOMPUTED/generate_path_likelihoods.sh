@@ -3,8 +3,7 @@
 #SBATCH --ntasks=1
 #SBATCH --mem=40G
 #SBATCH --qos=bonus
-#SBATCH --output=path_likelihoods-%j.out
-#SBATCH --error=path_likelihoods-%j.err
+#SBATCH --output=logs/path_likelihoods-%j.out
+#SBATCH --error=logs/path_likelihoods-%j.err
 
-sage generate_path_likelihoods.sage ${1} ${2} ${3} ${4} ${5}
-
+sage generate_path_likelihoods_functional.sage ${1} ${2} ${3} ${4} ${5}

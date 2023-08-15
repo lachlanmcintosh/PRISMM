@@ -23,7 +23,6 @@ from typing import List, Dict, Tuple, Optional
 
 # Constants
 MATRIX_DIRECTORY = "MATRICES"
-GD_FILE = 'GD.sobj'
 LOGGING_FORMAT = "%(levelname)s: %(message)s"
 
 # Configure logging
@@ -60,17 +59,13 @@ class MatrixPrecomputer:
         self.precomputed_paths_filename = self.base_filename.replace(".pickle", ".precomputed_paths.pickle")
 
     def load_or_create_matrices(self) -> None:
-        """
-        Load or create matrices based on the provided parameters.
-
-        Returns:
-            None
-        """
+        # Load the matrices first since they are needed in other methods.
+        self.anueploidy_matrix = self.load_base_matrix(f"{MATRIX_DIRECTORY}/ANUEPLOID_{self.path_description}.sobj")
+        self.genome_doubling_matrix = self.load_base_matrix(f"{MATRIX_DIRECTORY}/GD_{self.path_description}.sobj")
+    
         if not os.path.isfile(self.collated_output_file):
             if not os.path.isfile(self.base_filename):
                 self.create_substituted_matrix()
-            self.anueploidy_matrix = self.load_matrix(self.base_filename)
-            self.genome_doubling_matrix = self.load_matrix(GD_FILE)
             self.anueploidy_matrix, self.genome_doubling_matrix = self.ensure_correct_matrix_size()
             self.normalize_rows_in_anueploidy_matrix()
             self.all_paths = self.load_all_path_combinations()
@@ -81,13 +76,12 @@ class MatrixPrecomputer:
 
 
     def create_substituted_matrix(self):
-        anueploidy_matrix = self.load_matrix(f"{MATRIX_DIRECTORY}/matrix_{self.path_description}.sobj")
-        substituted_matrix = self.substitute_matrix(anueploidy_matrix)
+        substituted_matrix = self.substitute_matrix(self.anueploidy_matrix)
         with open(self.base_filename, 'wb') as m_output:
             pickle.dump(substituted_matrix, m_output)
 
     def substitute_matrix(self, anueploidy_matrix: np.array) -> np.array:
-        substituted_matrix = anueploidy_matrix.subs(u=self.p_up/100,d=self.p_down/100)
+        substituted_matrix = anueploidy_matrix.subs(u=self.p_up,d=self.p_down)
         substituted_matrix = substituted_matrix.apply_map(np.float64)
         substituted_matrix = substituted_matrix.numpy(dtype='double')
         return substituted_matrix
@@ -96,6 +90,9 @@ class MatrixPrecomputer:
         with open(filename,'rb') as m_data:
             matrix = pickle.load(m_data)
         return matrix
+
+    def load_base_matrix(self, filename: str) -> np.array:
+        return  load(filename)
 
     def ensure_correct_matrix_size(self) -> Tuple[np.array, np.array]:
         max_CN_plus_two = self.max_CN + 2
@@ -110,7 +107,7 @@ class MatrixPrecomputer:
                 self.anueploidy_matrix[row,:] /= total
 
     def load_all_path_combinations(self) -> np.array:
-        return self.load_matrix(f"all_path_combinations_{self.path_description}.sobj")
+        return load(f"MATRICES/all_path_combinations_{self.path_description}.sobj")
 
     def separate_single_paths_from_all_paths(self) -> List[str]:
         return [x for x in self.all_paths if "G" not in x]
@@ -142,6 +139,7 @@ class MatrixPrecomputer:
                 logging.error(f"Failed to load precomputed paths due to: {str(e)}")
                 os.remove(self.precomputed_paths_filename)
                 path_dict = {}
+            path_dict = self.precompute_paths_for_all_paths(path_dict)
         else:
             path_dict = self.precompute_paths_for_all_paths({})
         return path_dict
@@ -152,10 +150,12 @@ class MatrixPrecomputer:
             if path in path_dict:
                 continue
             path_dict[path] = self.precompute_path(path)
-            if count % 200 == 0:
-                with open(self.precomputed_paths_filename,'wb') as precomputed_data:
-                    pickle.dump(path_dict, precomputed_data)
+            #if count % 200 == 0:
+            #    with open(self.precomputed_paths_filename,'wb') as precomputed_data:
+            #        pickle.dump(path_dict, precomputed_data)
             count = count + 1
+        with open(self.precomputed_paths_filename,'wb') as precomputed_data:
+             pickle.dump(path_dict, precomputed_data)
         return path_dict
 
     def precompute_path(self, path: str) -> np.array:

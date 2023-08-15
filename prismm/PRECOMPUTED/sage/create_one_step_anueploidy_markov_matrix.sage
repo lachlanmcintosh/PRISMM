@@ -18,13 +18,13 @@ m[0,0] = 1
 # other cases
 # WE ONLY NEED TO GO TO ONE POWER LESS THAT THE MAX COPY NUMBER STATE BECAUSE
 for i in range(1,2**(path_length-1)+1):
-  print(i)
+  print(i, flush=True)
   my_coefs = poly.coefficients(s,sparse=False)
   for j in range(len(my_coefs)):
     m[i,j] = my_coefs[j]
   poly = poly * f(s) 
 
-outfile = "MATRICES/matrix_p"+str(path_length)+"_v4"
+outfile = "MATRICES/ANUEPLOID_p"+str(path_length)+"_v4"
 save(m,outfile)
 
 

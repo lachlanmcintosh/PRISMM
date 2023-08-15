@@ -56,16 +56,16 @@ def print_all_trees_and_timings(trees_and_timings):
 def initial_rate_estimate(pre, mid, post, SS):
     logging.info("Initial rate estimate")
     total_SNV_time = pre + mid + post + 2 + 1
-    total_SNVs = sum_SNV_counts(SS["observed_SNV_multiplicities"])
+    total_SNVs = sum_SNV_counts(SS["SNV_solutions"]["observed_SNV_multiplicities"])
     logging.info("total SNVs")
     logging.info(total_SNVs)
     logging.info("observed_SNV_multiplicities")
-    logging.info(SS["observed_SNV_multiplicities"])
+    logging.info(SS["SNV_solutions"]["observed_SNV_multiplicities"])
 
     logging.info("observed_copy_numbers")
-    logging.info(SS["observed_copy_numbers"])
+    logging.info(SS["simulation"]["observed_copy_numbers"])
 
-    total_chromosomes = sum_observed_copy_numbers(SS["observed_copy_numbers"])
+    total_chromosomes = sum_observed_copy_numbers(SS["simulation"]["observed_copy_numbers"])
     plambda_start = float(total_SNVs) / float(total_SNV_time) / float(total_chromosomes) * 23
     logging.info("plambda_start: " + str(plambda_start))
 
@@ -248,7 +248,7 @@ def find_solutions(SS, p_window, plambda_window, tree_flexibility, alpha):
             p_window=p_window,
             plambda_window=plambda_window,
             all_structures=annotated_trees_and_timings,
-            observed_SNV_multiplicities=SS["observed_SNV_multiplicities"],
+            observed_SNV_multiplicities=SS["SNV_solutions"]["observed_SNV_multiplicities"],
             total_SNVs=total_SNVs,
             tree_flexibility=tree_flexibility
         )

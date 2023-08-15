@@ -393,7 +393,7 @@ def get_all_trees(observed_SNV_multiplicities, observed_copy_numbers, pre_est, m
         tts["results"][chrom]["observed_SNV_copy_numbers"] = list(observed_SNV_multiplicities[chrom].keys())
         tts["results"][chrom]["observed_copy_numbers"] = observed_copy_numbers[chrom]
         tts["results"][chrom]["trees"] = generate_and_filter_trees(chrom, tts)
-
+        
     return tts
 
 

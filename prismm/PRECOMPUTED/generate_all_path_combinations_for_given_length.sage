@@ -1,3 +1,4 @@
+import os
 import sys
 
 length = int(sys.argv[1]) 
@@ -24,6 +25,8 @@ print(len([x for x in all_paths if len(x.split("G")) == 3]))
 print(len([x for x in all_paths]))
 
 # save the like of all combinations that we wantto make
+dir_path = "MATRICES/p" + str(length) + "_v5"
+if not os.path.exists(dir_path):
+    os.makedirs(dir_path)
 
-save(all_paths,"all_path_combinations_p"+str(length)+"_v4")
-
+save(all_paths, dir_path + "/all_path_combinations")

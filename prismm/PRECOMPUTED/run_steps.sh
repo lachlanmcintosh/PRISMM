@@ -1,1 +1,0 @@
-nohup ./steps.sh &
