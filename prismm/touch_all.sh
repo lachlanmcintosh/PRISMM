@@ -8,7 +8,7 @@
 # Load any necessary modules (e.g., module load findutils)
 
 # Change to the target directory
-cd /vast/scratch/users/lmcintosh/
+cd /vast/scratch/users/lmcintosh/PRISMM/
 
 # Path to a marker file
 marker_file="touch_all.marker"
