@@ -120,7 +120,7 @@ def are_all_chromosomes_viable_by_BP_likelihood(all_structures, tree_flexibility
 
 def add_BP_likelihoods(all_structures, p_up, p_down):
 
-    file = PRECOMPUTED_FILE_FOLDER + "/subbed_mat_u"+str(int(p_up))+"_d"+str(int(p_down))+"_p8_v4.precomputed_paths.pickle"
+    file = PRECOMPUTED_FILE_FOLDER + "p{args.path}_v{args.precomputed_version}/subbed_mat_u"+str(int(p_up))+"_d"+str(int(p_down))+".precomputed_paths.pickle"
 
     data = pkl.load(open(file,'rb'))
 

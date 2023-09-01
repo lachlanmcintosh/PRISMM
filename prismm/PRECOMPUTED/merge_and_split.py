@@ -31,6 +31,17 @@ for i, j in combinations:
 # Concatenate all dataframes
 concatenated_df = pd.concat(frames, ignore_index=True)
 
+# Save the concatenated table
+concatenated_df.to_csv(os.path.join(base_path, "concatenated_table.csv"), index=False)
+
+# Save the logged version of the concatenated table
+# Note: Using a small value to avoid log(0)
+logged_df = concatenated_df.copy()
+for col in logged_df.columns:
+    if "CN_" in col:
+        logged_df[col] = np.log(logged_df[col] + 1e-10)
+logged_df.to_csv(os.path.join(base_path, "concatenated_table_logged.csv"), index=False)
+
 # Save the first 3 column names
 names = concatenated_df.columns[:3]
 #names.to_csv(os.path.join(base_path, "names.csv"), index=False)

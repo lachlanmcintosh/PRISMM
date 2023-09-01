@@ -5,19 +5,32 @@ from typing import Dict
 from prismm.utils.FILES import PRECOMPUTED_FILE_FOLDER
 
 def calculate_likelihoods(all_data, observed_copy_number_multiplicities):
+    
+    # Convert observed_copy_number_multiplicities keys to string
     observed_copy_number_multiplicities_str = {
         str(key): value for key, value in observed_copy_number_multiplicities.items()
     }
+
+    # For debugging: print the columns in all_data and the keys in observed_copy_number_multiplicities_str
+    #print("Columns in all_data:", all_data.columns)
+    #print("Keys in observed_copy_number_multiplicities_str:", observed_copy_number_multiplicities_str.keys())
+
+    # Create a list comprehension using the adjusted column names
     lls = np.sum(
-        [all_data[copy] * multiplicity for copy, multiplicity in observed_copy_number_multiplicities_str.items()],
+        [all_data[f"CN_{copy}"] * multiplicity for copy, multiplicity in observed_copy_number_multiplicities_str.items()],
         axis=0
     )
     
-    assert np.shape(lls) == np.shape(all_data["0"])
+    assert np.shape(lls) == np.shape(all_data["CN_0"]), "Mismatch in shapes of lls and all_data['CN_0']"
+    
     likelihoods = np.exp(lls)
+    
     if "0" in observed_copy_number_multiplicities:
-        likelihoods = likelihoods / (1 - np.exp(all_data["0"]))**observed_copy_number_multiplicities["0"]
+        zero_column_name = "CN_0"
+        likelihoods = likelihoods / (1 - np.exp(all_data[zero_column_name]))**observed_copy_number_multiplicities["0"]
+    
     return likelihoods
+
 
 
 def test_calculate_likelihoods():
@@ -76,17 +89,9 @@ def test_calculate_likelihoods():
     assert np.allclose(result, expected_likelihoods, rtol=1e-5), f"Expected {expected_likelihoods}, but got {result}"
 
 
-#test_calculate_likelihoods()
-
-
-def read_pickle_with_custom_columns(file_name):
-    all_data = pd.read_pickle(file_name)
-    return all_data
-
-def CN_multiplicities_to_likelihoods(observed_copy_number_multiplicities: Dict[int, int]):
-    file_name = PRECOMPUTED_FILE_FOLDER + "collated_p8_v4_logged.pkl"
-    p_value = int(re.findall(r"_p(\d+)_", file_name)[0])
-    all_data = read_pickle_with_custom_columns(file_name)
+def CN_multiplicities_to_likelihoods(args, observed_copy_number_multiplicities: Dict[int, int]):
+    file_name = f"{PRECOMPUTED_FILE_FOLDER}p{args.path_length}_v{args.precomputed_version}/concatenated_table_logged.csv"
+    all_data = pd.read_csv(file_name)
     likelihoods = calculate_likelihoods(all_data, observed_copy_number_multiplicities)
     named_likelihoods = all_data[["p_up", "p_down", "path"]].copy()
     named_likelihoods.insert(3, "likelihood", likelihoods, True)
@@ -129,3 +134,9 @@ def test_CN_multiplicities_to_likelihoods():
     # Additional test cases can be added here with different observed_copy_number_multiplicities values and read_pickle_with_custom_columns function
 
 #test_CN_multiplicities_to_likelihoods()
+
+
+def CN_multiplicities_to_likelihoods_cts(args, observed_copy_number_multiplicities: Dict[int, int]):
+    # want the three likelihoods here, want the best 2GD one, the best 1GD one, and the best no GD one
+    
+    

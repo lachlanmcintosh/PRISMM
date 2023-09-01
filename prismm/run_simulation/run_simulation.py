@@ -18,9 +18,8 @@ from prismm.run_simulation.parse_arguments import parse_arguments
 from prismm.script_args import print_args
 from prismm.utils.set_logging_settings import set_logging_settings
 from prismm.utils.path_codes import pre_mid_post_to_path_length
-
-# Define the simulation file folder as a Path object for easier file handling
-SIMULATIONS_FILE_FOLDER = Path("prismm/SIMULATIONS/")
+from prismm.utils.FILES import SIMULATIONS_FILE_FOLDER
+from prismm.utils.IO_operations import save_simulation_to_file
 
 def simulate_genome_and_summarise_observable_variables(args) -> Tuple[Dict, List, List, Dict, Dict]:
     """
@@ -51,25 +50,8 @@ def simulate_genome_and_summarise_observable_variables(args) -> Tuple[Dict, List
 
     return simulated_chromosomes, phylogenetic_trees, copy_number_trees, observed_copy_numbers, observed_copy_number_multiplicities
     
+save_results_to_file  = save_simulation_to_file
 
-def save_results_to_file(args, simulated_chromosomes: Dict,
-                         phylogenetic_trees: List, copy_number_trees: List, observed_copy_numbers: Dict,
-                         observed_copy_number_multiplicities: Dict) -> None:
-    """
-    Function to save the simulation results to a pickle file.
-    """
-
-    file_name = SIMULATIONS_FILE_FOLDER / f'{args.simulation_filename}_{args.test_case}.pickle'
-    with file_name.open('wb') as f:
-        pickle.dump({"simulation": {
-            'simulated_chromosomes': simulated_chromosomes,
-            'phylogenetic_trees': phylogenetic_trees,
-            'copy_number_trees': copy_number_trees,
-            'observed_copy_numbers': observed_copy_numbers,
-            'observed_copy_number_multiplicities': observed_copy_number_multiplicities,
-            'args': args
-        }}, f)
-    logging.info(f"Simulation saved to file {file_name}")
 
 def main(args) -> None:
     """
@@ -106,7 +88,7 @@ def main(args) -> None:
     print_args(args)
 
     # Save the results
-    save_results_to_file(
+    save_simulation_to_file(
         args=args,
         simulated_chromosomes=simulated_chromosomes,
         phylogenetic_trees=phylogenetic_trees,

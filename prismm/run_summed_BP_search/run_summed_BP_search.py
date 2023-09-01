@@ -1,8 +1,8 @@
 import logging
 from prismm.run_summed_BP_search.parse_arguments import parse_arguments
-from prismm.run_summed_BP_search.IO_operations import load_results_from_file, save_likelihoods
+from prismm.utils.IO_operations import load_results_from_file, save_likelihoods_to_file
 from prismm.run_summed_BP_search.print_things import pretty_print_simulation, print_dataframes, print_path_likelihoods
-from prismm.run_summed_BP_search.multiplicities_to_likelihoods import CN_multiplicities_to_likelihoods
+from prismm.run_summed_BP_search.multiplicities_to_likelihoods import CN_multiplicities_to_likelihoods, CN_multiplicities_to_likelihoods_cts
 from prismm.run_summed_BP_search.compute_likelihoods import compute_likelihoods
 from prismm.utils.set_logging_settings import set_logging_settings
 from prismm.script_args import print_args
@@ -18,10 +18,11 @@ def generate_default_paths(max_default_path_length):
     return default_paths
 
 def load_simulation_and_compute_likelihoods(args, default_paths):
-    simulation = load_results_from_file(test_case=args.test_case, simulation_name=args.simulation_filename)
+    simulation = load_results_from_file(args=args)
     pretty_print_simulation(simulation=simulation)
-    likelihoods = CN_multiplicities_to_likelihoods(observed_copy_number_multiplicities=simulation['observed_copy_number_multiplicities'])
-    continuous_likelihoods = CN_multiplicities_to_likelihoods(observed_copy_number_multiplicities=simulation['observed_copy_number_multiplicities'])
+    likelihoods = CN_multiplicities_to_likelihoods(args=args,
+                                                   observed_copy_number_multiplicities=simulation['observed_copy_number_multiplicities'])
+    continuous_likelihoods = CN_multiplicities_to_likelihoods_cts(args=args, observed_copy_number_multiplicities=simulation['observed_copy_number_multiplicities'])
     computed_likelihoods = compute_likelihoods(
         likelihoods=likelihoods,
         max_number_of_solutions=args.max_number_of_solutions,
@@ -43,7 +44,7 @@ def save_and_print_dataframes(args, simulation, likelihoods, computed_likelihood
     print_dataframes(dataframes)
     logging.info("finished_print_dataframes")
 
-    save_likelihoods(
+    save_likelihoods_to_file(
         args=args,
         likelihoods=likelihoods,
         marginal_likelihoods=marginal_likelihoods,

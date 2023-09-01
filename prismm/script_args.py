@@ -35,6 +35,18 @@ def add_base_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         default=2.0,
         help="Lam parameter for Poisson distribution for randomly sampling the mean number of events per anueploidy period (optional, default is 2)."
     )
+    parser.add_argument(
+        '--path_length',
+        type=int,
+        default=5,
+        help="The maximum path length."
+    )
+    parser.add_argument(
+        '--precomputed_version',
+        type=int,
+        default=5,
+        help="Version of the precomputed data." 
+    )
     return parser
 
 def add_simulation_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
